@@ -1,0 +1,36 @@
+name: kiss_physical
+description: >-
+  A physically lit UI kit for Flutter: shader-drawn surfaces, materials and
+  depth layers under one world light that follows how the device is held.
+version: 0.1.0
+homepage: https://wearemobilefirst.com
+topics:
+  - ui
+  - widget
+  - shader
+  - design-system
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  kiss_color: ^0.6.0
+  kiss_layout: ^1.2.0
+  native_device_orientation: ^2.1.3
+  sensors_plus: ^7.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^7.0.0
+
+flutter:
+  shaders:
+    - shaders/physical_dot_grid.frag
+    - shaders/physical_lens.frag
+    - shaders/physical_pegboard.frag
+    - shaders/physical_plain.frag
+    - shaders/physical_surface.frag
