@@ -3,9 +3,16 @@ description: >-
   A physically lit UI kit for Flutter: shader-drawn surfaces, materials and
   depth layers under one world light that follows how the device is held.
 version: 0.1.0
-homepage: https://wearemobilefirst.com
+homepage: https://wamf.github.io/kiss_physical/
 repository: https://github.com/WAMF/kiss_physical
 issue_tracker: https://github.com/WAMF/kiss_physical/issues
+screenshots:
+  - description: Showpiece materials with moss, rain, flame and wear, in the storybook.
+    path: screenshots/showpieces.jpg
+  - description: Brushed metal textures under the world light.
+    path: screenshots/metals.jpg
+  - description: Glass vessels, clear, tinted and holding liquid.
+    path: screenshots/glass_and_liquid.jpg
 topics:
   - ui
   - widget

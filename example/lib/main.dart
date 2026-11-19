@@ -21,8 +21,7 @@ class WidgetbookApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Widgetbook.material(
       themeMode: ThemeMode.dark,
-      // The [directories] variable does not exist yet,
-      // it will be generated in the next step
+      initialRoute: _Start.showpieces,
       directories: directories,
       addons: [
         KitAddon(),
@@ -35,4 +34,8 @@ class WidgetbookApp extends StatelessWidget {
       ],
     );
   }
+}
+
+class _Start {
+  static const showpieces = '/?path=materials/materialgallery/showpieces';
 }

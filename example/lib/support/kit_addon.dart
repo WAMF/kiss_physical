@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kiss_color/kiss_color.dart';
 import 'package:kiss_physical/kiss_physical.dart';
+import 'package:kiss_physical_example/support/device_tilt.dart';
 import 'package:kiss_physical_example/support/kit_palette.dart';
+import 'package:kiss_physical_example/support/pointer_light.dart';
 import 'package:widgetbook/widgetbook.dart';
 
 /// What the kit addon lets the viewer change for every use case.
@@ -41,7 +43,7 @@ class KitAddon extends WidgetbookAddon<KitSetting> {
   static const _hour = 'hour of day';
   static const _lightAcross = 'light across';
   static const _lightDown = 'light down';
-  static const _followDevice = 'light follows device tilt';
+  static const _followDevice = 'light follows device tilt or pointer';
   static const _pegboard = 'pegboard';
 
   static const _hoursPerDay = 24.0;
@@ -190,7 +192,8 @@ class _KitScopeState extends State<KitScope> {
 }
 
 /// Lights [child] from a lamp that stays put in the world as the device
-/// tilts, or from one fixed over the screen at [direction].
+/// tilts, from the pointer where the device cannot feel tilt, or from a lamp
+/// fixed over the screen at [direction].
 class _Lighting extends StatelessWidget {
   const _Lighting({
     required this.followsDevice,
@@ -208,8 +211,11 @@ class _Lighting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (followsDevice) return WorldLight(sky: sky, child: child);
-    return PhysicalLight(direction: direction, tone: tone, child: child);
+    if (!followsDevice) {
+      return PhysicalLight(direction: direction, tone: tone, child: child);
+    }
+    if (DeviceTilt.isFelt) return WorldLight(sky: sky, child: child);
+    return PointerLight(tone: tone, child: child);
   }
 }
 

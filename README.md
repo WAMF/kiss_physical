@@ -5,6 +5,11 @@ solid bodies with bevels, highlights and cast shadows, drawn by fragment
 shaders and lit by one light that stays put in the world while the device
 turns beneath it.
 
+**[Try the live demo](https://wamf.github.io/kiss_physical/)** — move the
+pointer to carry the light, or open it on a phone and tilt.
+
+![Showpiece materials: a mossy wall in the rain, a burning log, weathered copper and an overgrown ruin](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/showpieces.jpg)
+
 - **One light.** A `WorldLight` at the root follows the device's tilt and,
   optionally, the sun and moon through the day. Every surface below reads it.
 - **Materials.** A `PhysicalMaterial` describes a body's shape and finish:
@@ -212,10 +217,11 @@ MaterialApp(
 
 ## Storybook
 
-[`example/`](example) is a Widgetbook with every component, a gallery of the
-materials, a playground with a knob for each material parameter, and
-controls for the light: its position, the hour of the day, and whether it
-follows the device.
+[`example/`](example) is a Widgetbook,
+[hosted here](https://wamf.github.io/kiss_physical/), with every component, a
+gallery of the materials, a playground with a knob for each material
+parameter, and controls for the light: its position, the hour of the day,
+and whether it follows the device.
 
 ```bash
 cd example

@@ -61,7 +61,10 @@ Widget buildStyledButtons(BuildContext context) {
       runSpacing: layout.itemSpacing.medium,
       children: [
         FilledButton(
-            style: style, onPressed: () {}, child: const Text('Filled'),),
+          style: style,
+          onPressed: () {},
+          child: const Text('Filled'),
+        ),
         TextButton(style: style, onPressed: () {}, child: const Text('Text')),
         ElevatedButton(style: style, onPressed: null, child: const Text('Off')),
       ],
