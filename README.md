@@ -6,7 +6,8 @@ shaders and lit by one light that stays put in the world while the device
 turns beneath it.
 
 **[Try the live demo](https://wamf.github.io/kiss_physical/)** — move the
-pointer to carry the light, or open it on a phone and tilt.
+pointer, or drag a finger, to carry the light. In an installed app the light
+follows the tilt of the device instead.
 
 ![Showpiece materials: a mossy wall in the rain, a burning log, weathered copper and an overgrown ruin](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/showpieces.jpg)
 
