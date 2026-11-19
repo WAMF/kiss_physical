@@ -153,15 +153,16 @@ Widget buildDotGrid(BuildContext context) {
             rows: rows,
             dots: [
               for (var cell = 0; cell < columns * rows; cell++)
-                cell % everyNth == 0
-                    ? PhysicalDot.bead(
-                        Color.lerp(
-                          colors.brand.primary.background,
-                          colors.primary.foreground,
-                          cell / (columns * rows),
-                        )!,
-                      )
-                    : PhysicalDot.socket(colors.secondary.background),
+                if (cell % everyNth == 0)
+                  PhysicalDot.bead(
+                    Color.lerp(
+                      colors.brand.primary.background,
+                      colors.primary.foreground,
+                      cell / (columns * rows),
+                    )!,
+                  )
+                else
+                  PhysicalDot.socket(colors.secondary.background),
             ],
           ),
         ),
