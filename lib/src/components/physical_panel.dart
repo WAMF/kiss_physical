@@ -10,7 +10,7 @@ class PhysicalPanel extends StatelessWidget {
   const PhysicalPanel({
     required this.child,
     super.key,
-    this.backgroundColor,
+    this.color,
     this.borderRadius,
     this.isRaised = false,
   });
@@ -20,7 +20,7 @@ class PhysicalPanel extends StatelessWidget {
 
   /// The colour of the panel. Defaults to the secondary background of the
   /// nearest `SemanticColors`, or the surface colour of the theme.
-  final Color? backgroundColor;
+  final Color? color;
 
   /// Defaults to the large corner radius of the nearest `Layout`, or of the
   /// standard layout, on every corner.
@@ -32,7 +32,7 @@ class PhysicalPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PhysicalSurface(
-      color: backgroundColor ?? PhysicalDefaults.surfaceColor(context),
+      color: color ?? PhysicalDefaults.surfaceColor(context),
       material:
           isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel,
       borderRadius: borderRadius ??

@@ -188,7 +188,7 @@ two shift in opposite directions.
 |---|---|
 | `PhysicalPillButton` | A Material button drawn as a glossy pill |
 | `physicalButtonStyle` | The same look for any `FilledButton`, `TextButton` or `ElevatedButton`, as a `ButtonStyle` or theme |
-| `PhysicalIconButton` | A round bead carrying an icon |
+| `PhysicalIconButton` | A round bead carrying an icon, with a tooltip and a label for screen readers |
 | `PhysicalSlider` | A bead on a recessed track |
 | `PhysicalProgressBar` | A glossy bar filling a recessed track |
 | `PhysicalCard`, `PhysicalDisc`, `PhysicalPill` | Clipping card shapes |
@@ -199,11 +199,28 @@ two shift in opposite directions.
 PhysicalSlider(
   value: volume,
   onChanged: setVolume,
+  semanticLabel: 'Volume',
   barColor: accent,
   trackColor: Colors.white24,
   thumbColor: Colors.white,
 )
+
+PhysicalIconButton(
+  icon: const Icon(Icons.add),
+  diameter: 48,
+  tooltip: 'Add',
+  onPressed: add,
+)
 ```
+
+Every component takes its content as `child` and its colour as `color`.
+Buttons take `onPressed`; `PhysicalPressable`, a surface that can be tapped,
+takes `onTap`. A button or slider with no callback is frosted over and
+inert.
+
+Pressable surfaces, buttons and the slider can be reached with Tab and show
+a ring while they have keyboard focus. Enter and Space press a button; the
+arrow keys move the slider a step.
 
 ```dart
 MaterialApp(

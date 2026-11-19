@@ -9,7 +9,7 @@ class PhysicalBottomPanel extends StatelessWidget {
   /// Creates a bottom panel behind [child].
   const PhysicalBottomPanel({
     required this.child,
-    required this.backgroundColor,
+    required this.color,
     this.isRaised = false,
     super.key,
   });
@@ -18,7 +18,7 @@ class PhysicalBottomPanel extends StatelessWidget {
   final Widget child;
 
   /// The colour of the panel.
-  final Color backgroundColor;
+  final Color color;
 
   /// Whether the panel floats above the content and casts a shadow.
   final bool isRaised;
@@ -26,7 +26,7 @@ class PhysicalBottomPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PhysicalSurface(
-      color: backgroundColor,
+      color: color,
       material:
           isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel,
       borderRadius: BorderRadius.vertical(

@@ -9,3 +9,8 @@
 - Components: `PhysicalPillButton`, `PhysicalIconButton`, `PhysicalSlider`,
   `PhysicalProgressBar`, `PhysicalCard`, `PhysicalDisc`, `PhysicalPill`,
   `PhysicalPanel`, `PhysicalBottomPanel`.
+- Components need no set-up: they use the nearest `Layout` and
+  `SemanticColors` where present, and the standard layout and the theme
+  otherwise.
+- Pressable surfaces, buttons and the slider take keyboard focus, respond to
+  Enter, Space and the arrow keys, and show a focus ring.

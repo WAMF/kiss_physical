@@ -3,13 +3,13 @@ import 'package:kiss_physical/src/components/physical_defaults.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
-/// A rounded physical slab that clips [content] to its outline.
+/// A rounded physical slab that clips [child] to its outline.
 class PhysicalCard extends StatelessWidget {
-  /// Creates a card around [content].
+  /// Creates a card around [child].
   const PhysicalCard({
-    required this.content,
+    required this.child,
     super.key,
-    this.backgroundColor,
+    this.color,
     this.borderRadius,
     this.material = PhysicalMaterial.satin,
     this.height,
@@ -17,11 +17,11 @@ class PhysicalCard extends StatelessWidget {
   });
 
   /// What the card holds, clipped to its rounded outline.
-  final Widget content;
+  final Widget child;
 
   /// The colour of the slab. Defaults to the secondary background of the
   /// nearest `SemanticColors`, or the surface colour of the theme.
-  final Color? backgroundColor;
+  final Color? color;
 
   /// Defaults to the large corner radius of the nearest `Layout`, or of the
   /// standard layout, on every corner.
@@ -30,10 +30,10 @@ class PhysicalCard extends StatelessWidget {
   /// How the slab is shaped and how it catches the light.
   final PhysicalMaterial material;
 
-  /// A fixed height, or null to take the height of [content].
+  /// A fixed height, or null to take the height of [child].
   final double? height;
 
-  /// A fixed width, or null to take the width of [content].
+  /// A fixed width, or null to take the width of [child].
   final double? width;
 
   @override
@@ -42,12 +42,12 @@ class PhysicalCard extends StatelessWidget {
       height: height,
       width: width,
       child: PhysicalSurface(
-        color: backgroundColor ?? PhysicalDefaults.surfaceColor(context),
+        color: color ?? PhysicalDefaults.surfaceColor(context),
         material: material,
         borderRadius: borderRadius ??
             BorderRadius.circular(PhysicalDefaults.cornerRadius(context)),
         clipBehavior: Clip.hardEdge,
-        child: content,
+        child: child,
       ),
     );
   }

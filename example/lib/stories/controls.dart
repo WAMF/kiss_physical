@@ -80,6 +80,8 @@ Widget buildStyledButtons(BuildContext context) {
 Widget buildIconButtons(BuildContext context) {
   final layout = Layout.of(context);
   final colors = SemanticColors.of(context).data;
+  final enabled = context.knobs.boolean(label: 'Enabled', initialValue: true);
+  final onPressed = enabled ? () {} : null;
   return Stage(
     child: Wrap(
       spacing: layout.itemSpacing.medium,
@@ -88,13 +90,15 @@ Widget buildIconButtons(BuildContext context) {
         for (final size in [layout.heroSizes.small, layout.actionSizes.large])
           PhysicalIconButton(
             diameter: size.height,
-            backgroundColor: colors.brand.primary.background,
-            onTap: () {},
+            color: colors.brand.primary.background,
+            onPressed: onPressed,
+            tooltip: 'Add',
             icon: Icon(Icons.add, color: colors.brand.primary.foreground),
           ),
         PhysicalIconButton(
           diameter: layout.heroSizes.small.height,
-          onTap: () {},
+          onPressed: onPressed,
+          tooltip: 'Done',
           icon: Icon(Icons.check, color: colors.secondary.foreground),
         ),
       ],
@@ -140,15 +144,20 @@ Widget buildPressable(BuildContext context) {
 )
 Widget buildSlider(BuildContext context) {
   final snaps = context.knobs.boolean(label: 'Snap to ten steps');
+  final enabled = context.knobs.boolean(label: 'Enabled', initialValue: true);
   return Stage(
-    child: _SliderDemo(divisions: snaps ? _Sample.sliderSteps : null),
+    child: _SliderDemo(
+      divisions: snaps ? _Sample.sliderSteps : null,
+      isEnabled: enabled,
+    ),
   );
 }
 
 class _SliderDemo extends StatefulWidget {
-  const _SliderDemo({required this.divisions});
+  const _SliderDemo({required this.divisions, required this.isEnabled});
 
   final int? divisions;
+  final bool isEnabled;
 
   @override
   State<_SliderDemo> createState() => _SliderDemoState();
@@ -164,7 +173,9 @@ class _SliderDemoState extends State<_SliderDemo> {
     return PhysicalSlider(
       value: _value,
       divisions: widget.divisions,
-      onChanged: (value) => setState(() => _value = value),
+      semanticLabel: 'Level',
+      onChanged:
+          widget.isEnabled ? (value) => setState(() => _value = value) : null,
       barColor: colors.brand.primary.background,
       trackColor: foreground.withValues(alpha: _Sample.trackOpacity),
       thumbColor: foreground,

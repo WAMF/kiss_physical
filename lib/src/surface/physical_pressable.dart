@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kiss_physical/src/material/disabled_look.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
+import 'package:kiss_physical/src/surface/focus_ring.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
 /// Drives the push-in animation shared by pressable physical surfaces.
@@ -26,6 +28,11 @@ class _PressController extends AnimationController {
 }
 
 /// A [PhysicalSurface] that sinks under the finger and springs back.
+///
+/// It can be reached and pressed from the keyboard, shows a ring while it
+/// has keyboard focus, and shows a hand cursor under a mouse. With no
+/// [onTap] it is inert and looks as it always does; give it other colours
+/// to show that it cannot be pressed.
 class PhysicalPressable extends StatefulWidget {
   /// Creates a pressable surface of [color] around [child].
   const PhysicalPressable({
@@ -35,10 +42,13 @@ class PhysicalPressable extends StatefulWidget {
     this.material = PhysicalMaterial.gloss,
     this.borderRadius = PhysicalSurface.stadium,
     this.semanticLabel,
+    this.focusNode,
+    this.autofocus = false,
     super.key,
   });
 
-  /// Called on tap. The surface is inert when null.
+  /// Called on tap, and on Enter or Space while focused. The surface is
+  /// inert when null.
   final VoidCallback? onTap;
 
   /// The base colour of the surface.
@@ -56,6 +66,12 @@ class PhysicalPressable extends StatefulWidget {
   /// What the button is called by screen readers.
   final String? semanticLabel;
 
+  /// Controls the keyboard focus of the surface, or null for one of its own.
+  final FocusNode? focusNode;
+
+  /// Whether the surface takes keyboard focus when it first appears.
+  final bool autofocus;
+
   @override
   State<PhysicalPressable> createState() => _PhysicalPressableState();
 }
@@ -63,32 +79,56 @@ class PhysicalPressable extends StatefulWidget {
 class _PhysicalPressableState extends State<PhysicalPressable>
     with SingleTickerProviderStateMixin {
   late final _press = _PressController(vsync: this);
+  final _showsFocus = ValueNotifier<bool>(false);
 
   @override
   void dispose() {
     _press.dispose();
+    _showsFocus.dispose();
     super.dispose();
+  }
+
+  Future<void> _pressFromKeyboard() async {
+    widget.onTap?.call();
+    await _press.forward();
+    if (mounted) _press.setPressed(pressed: false);
   }
 
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    return Semantics(
-      button: true,
+    return FocusableActionDetector(
       enabled: enabled,
-      label: widget.semanticLabel,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        onTapDown: enabled ? (_) => _press.setPressed(pressed: true) : null,
-        onTapUp: enabled ? (_) => _press.setPressed(pressed: false) : null,
-        onTapCancel: enabled ? () => _press.setPressed(pressed: false) : null,
-        child: PhysicalSurface(
-          color: widget.color,
-          material: widget.material,
-          borderRadius: widget.borderRadius,
-          press: _press.travel,
-          child: widget.child,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      onShowFocusHighlight: (shows) => _showsFocus.value = shows,
+      actions: {
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) => _pressFromKeyboard(),
+        ),
+      },
+      child: Semantics(
+        button: true,
+        enabled: enabled,
+        label: widget.semanticLabel,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          onTapDown: enabled ? (_) => _press.setPressed(pressed: true) : null,
+          onTapUp: enabled ? (_) => _press.setPressed(pressed: false) : null,
+          onTapCancel: enabled ? () => _press.setPressed(pressed: false) : null,
+          child: PhysicalFocusRing(
+            isShown: _showsFocus,
+            borderRadius: widget.borderRadius,
+            child: PhysicalSurface(
+              color: widget.color,
+              material: widget.material,
+              borderRadius: widget.borderRadius,
+              press: _press.travel,
+              child: widget.child,
+            ),
+          ),
         ),
       ),
     );
@@ -181,45 +221,17 @@ ButtonStyle physicalButtonStyle({
     textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
     foregroundColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled)
-          ? foregroundColor.withValues(alpha: _Disabled.foregroundAlpha)
+          ? foregroundColor.withValues(alpha: DisabledLook.foregroundAlpha)
           : foregroundColor,
     ),
     backgroundBuilder: (context, states, child) {
       final isDisabled = states.contains(WidgetState.disabled);
       return PhysicalButtonBackground(
-        color: isDisabled ? _Disabled.frosted(color) : color,
-        material: isDisabled ? _Disabled.flattened(material) : material,
+        color: isDisabled ? DisabledLook.frosted(color) : color,
+        material: isDisabled ? DisabledLook.flattened(material) : material,
         isPressed: states.contains(WidgetState.pressed),
         child: child ?? const SizedBox.shrink(),
       );
     },
   );
-}
-
-/// How a button looks when it cannot be pressed: frosted over, so its
-/// colour is greyed and its shine, dome and shadow are gone.
-class _Disabled {
-  static const foregroundAlpha = 0.45;
-
-  /// The grey a disabled button's colour is drawn towards.
-  static const _frost = Color(0xFF5E5D63);
-
-  /// Share of the way the colour moves to [_frost].
-  static const _frostAmount = 0.72;
-  static const _roughness = 0.95;
-  static const _reliefScale = 0.35;
-
-  static Color frosted(Color color) {
-    return Color.lerp(color, _frost, _frostAmount)!.withValues(alpha: color.a);
-  }
-
-  static PhysicalMaterial flattened(PhysicalMaterial material) {
-    return material.copyWith(
-      roughness: _roughness,
-      specularTint: 0,
-      crown: 0,
-      relief: material.relief * _reliefScale,
-      elevation: 0,
-    );
-  }
 }

@@ -61,12 +61,12 @@ PhysicalSurface _surfaceOf(WidgetTester tester) {
 void main() {
   const content = SizedBox.square(dimension: 40);
   final components = <String, Widget>{
-    'PhysicalCard': const PhysicalCard(content: content),
-    'PhysicalDisc': const PhysicalDisc(content: content),
-    'PhysicalPill': const PhysicalPill(content: content),
+    'PhysicalCard': const PhysicalCard(child: content),
+    'PhysicalDisc': const PhysicalDisc(child: content),
+    'PhysicalPill': const PhysicalPill(child: content),
     'PhysicalPanel': const PhysicalPanel(child: content),
     'PhysicalIconButton':
-        PhysicalIconButton(icon: content, diameter: 40, onTap: () {}),
+        PhysicalIconButton(icon: content, diameter: 40, onPressed: () {}),
   };
 
   group('without Layout or SemanticColors', () {
@@ -85,7 +85,7 @@ void main() {
       await tester.pumpWidget(
         _plainApp(
           const PhysicalBottomPanel(
-            backgroundColor: _Sample.themeSurface,
+            color: _Sample.themeSurface,
             child: content,
           ),
         ),
@@ -97,7 +97,7 @@ void main() {
     testWidgets('a card takes the large radius of the standard layout', (
       tester,
     ) async {
-      await tester.pumpWidget(_plainApp(const PhysicalCard(content: content)));
+      await tester.pumpWidget(_plainApp(const PhysicalCard(child: content)));
 
       expect(
         _surfaceOf(tester).borderRadius,
@@ -119,7 +119,7 @@ void main() {
       tester,
     ) async {
       for (final component in [
-        const PhysicalCard(content: content),
+        const PhysicalCard(child: content),
         const PhysicalPanel(child: content),
       ]) {
         await tester.pumpWidget(_kissApp(component));
@@ -135,8 +135,8 @@ void main() {
       await tester.pumpWidget(
         _kissApp(
           const PhysicalCard(
-            backgroundColor: _Sample.themeSurface,
-            content: content,
+            color: _Sample.themeSurface,
+            child: content,
           ),
         ),
       );
