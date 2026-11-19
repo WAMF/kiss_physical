@@ -4,6 +4,8 @@ description: >-
   depth layers under one world light that follows how the device is held.
 version: 0.1.0
 homepage: https://wearemobilefirst.com
+repository: https://github.com/WAMF/kiss_physical
+issue_tracker: https://github.com/WAMF/kiss_physical/issues
 topics:
   - ui
   - widget
@@ -18,7 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   kiss_color: ^0.6.0
-  kiss_layout: ^1.2.0
+  kiss_layout: ">=1.2.0 <4.0.0"
   native_device_orientation: ^2.1.3
   sensors_plus: ^7.1.1
 
