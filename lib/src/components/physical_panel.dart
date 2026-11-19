@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kiss_color/kiss_color.dart';
-import 'package:kiss_layout/kiss_layout.dart';
+import 'package:kiss_physical/src/components/physical_defaults.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
@@ -20,10 +19,11 @@ class PhysicalPanel extends StatelessWidget {
   final Widget child;
 
   /// The colour of the panel. Defaults to the secondary background of the
-  /// surrounding [SemanticColors].
+  /// nearest `SemanticColors`, or the surface colour of the theme.
   final Color? backgroundColor;
 
-  /// Defaults to the large corner radius of the layout on every corner.
+  /// Defaults to the large corner radius of the nearest `Layout`, or of the
+  /// standard layout, on every corner.
   final BorderRadius? borderRadius;
 
   /// Whether the panel floats above its parent and casts a shadow.
@@ -31,15 +31,12 @@ class PhysicalPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layout = Layout.of(context);
-    final colors = SemanticColors.of(context);
-
     return PhysicalSurface(
-      color: backgroundColor ?? colors.data.secondary.background,
+      color: backgroundColor ?? PhysicalDefaults.surfaceColor(context),
       material:
           isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel,
-      borderRadius:
-          borderRadius ?? BorderRadius.circular(layout.cornerRadii.large),
+      borderRadius: borderRadius ??
+          BorderRadius.circular(PhysicalDefaults.cornerRadius(context)),
       child: child,
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kiss_layout/kiss_layout.dart';
+import 'package:kiss_physical/src/components/physical_defaults.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
@@ -25,14 +25,12 @@ class PhysicalBottomPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layout = Layout.of(context);
-
     return PhysicalSurface(
       color: backgroundColor,
       material:
           isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel,
       borderRadius: BorderRadius.vertical(
-        top: Radius.circular(layout.cornerRadii.large),
+        top: Radius.circular(PhysicalDefaults.cornerRadius(context)),
       ),
       clipBehavior: Clip.hardEdge,
       child: SafeArea(

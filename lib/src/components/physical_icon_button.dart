@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kiss_physical/src/components/physical_defaults.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/surface/physical_pressable.dart';
 
@@ -19,7 +20,8 @@ class PhysicalIconButton extends StatelessWidget {
   /// The width and height of the button in logical pixels.
   final double diameter;
 
-  /// The colour of the button. Defaults to the surface colour of the theme.
+  /// The colour of the button. Defaults to the secondary background of the
+  /// nearest `SemanticColors`, or the surface colour of the theme.
   final Color? backgroundColor;
 
   /// Called on tap. The button is inert when null.
@@ -27,12 +29,11 @@ class PhysicalIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return SizedBox.square(
       dimension: diameter,
       child: PhysicalPressable(
         onTap: onTap,
-        color: backgroundColor ?? theme.colorScheme.surface,
+        color: backgroundColor ?? PhysicalDefaults.surfaceColor(context),
         material: PhysicalMaterial.bead,
         child: Center(child: icon),
       ),

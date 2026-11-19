@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kiss_layout/kiss_layout.dart';
+import 'package:kiss_physical/src/components/physical_defaults.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
@@ -19,10 +19,12 @@ class PhysicalCard extends StatelessWidget {
   /// What the card holds, clipped to its rounded outline.
   final Widget content;
 
-  /// The colour of the slab. Defaults to the surface colour of the theme.
+  /// The colour of the slab. Defaults to the secondary background of the
+  /// nearest `SemanticColors`, or the surface colour of the theme.
   final Color? backgroundColor;
 
-  /// Defaults to the large corner radius of the layout on every corner.
+  /// Defaults to the large corner radius of the nearest `Layout`, or of the
+  /// standard layout, on every corner.
   final BorderRadius? borderRadius;
 
   /// How the slab is shaped and how it catches the light.
@@ -36,16 +38,14 @@ class PhysicalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layout = Layout.of(context);
-    final theme = Theme.of(context);
     return SizedBox(
       height: height,
       width: width,
       child: PhysicalSurface(
-        color: backgroundColor ?? theme.colorScheme.surface,
+        color: backgroundColor ?? PhysicalDefaults.surfaceColor(context),
         material: material,
-        borderRadius:
-            borderRadius ?? BorderRadius.circular(layout.cornerRadii.large),
+        borderRadius: borderRadius ??
+            BorderRadius.circular(PhysicalDefaults.cornerRadius(context)),
         clipBehavior: Clip.hardEdge,
         child: content,
       ),

@@ -60,11 +60,13 @@ above the top-left of the screen.
 Without any light above them, surfaces use that same resting light
 (`PhysicalLight.still`), so widget tests and previews need no set-up.
 
-The ready-made components (`PhysicalCard`, `PhysicalPanel` and friends) take
-their default corner radii from [`kiss_layout`](https://pub.dev/packages/kiss_layout)
-and `PhysicalPanel` takes its default colour from
-[`kiss_color`](https://pub.dev/packages/kiss_color), so place a `Layout` and
-`SemanticColors` above them. The core widgets need neither.
+The ready-made components (`PhysicalCard`, `PhysicalPanel` and friends) need
+no set-up either. Where an app uses
+[`kiss_layout`](https://pub.dev/packages/kiss_layout) and
+[`kiss_color`](https://pub.dev/packages/kiss_color), they take their corner
+radius from the nearest `Layout` and their colour from the nearest
+`SemanticColors`. Without those they use the standard layout and the
+surface colour of the theme.
 
 ## Surfaces
 
