@@ -119,6 +119,7 @@ class _Track extends StatelessWidget {
             color: barColor,
             material: barMaterial,
             borderRadius: PhysicalSurface.stadium,
+            textureAlignment: AlignmentDirectional.centerStart,
             child: const SizedBox.expand(),
           ),
         ),

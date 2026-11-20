@@ -33,6 +33,7 @@ class PhysicalSurface extends StatelessWidget {
     this.press,
     this.clipBehavior = Clip.none,
     this.isFaceCovered = false,
+    this.textureAlignment = Alignment.center,
     super.key,
   });
 
@@ -62,6 +63,13 @@ class PhysicalSurface extends StatelessWidget {
   /// spares lighting a face nobody can see.
   final bool isFaceCovered;
 
+  /// The point of the body its texture is pinned to. The grain or veins
+  /// there stay put while the body changes size, so a bar that grows from
+  /// its start uncovers more of one texture when pinned to
+  /// [AlignmentDirectional.centerStart], where pinned to its centre the
+  /// texture would slide along as it grew.
+  final AlignmentGeometry textureAlignment;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -76,6 +84,7 @@ class PhysicalSurface extends StatelessWidget {
             press: press,
             isOverlay: false,
             isFaceCovered: isFaceCovered,
+            textureAlignment: textureAlignment,
           ),
         ),
         if (clipBehavior == Clip.none)
@@ -129,6 +138,7 @@ class PhysicalGlass extends StatelessWidget {
               press: null,
               isOverlay: true,
               isFaceCovered: false,
+              textureAlignment: Alignment.center,
             ),
           ),
         ),
@@ -145,6 +155,7 @@ class _SurfaceLayer extends StatefulWidget {
     required this.press,
     required this.isOverlay,
     required this.isFaceCovered,
+    required this.textureAlignment,
   });
 
   final Color color;
@@ -153,6 +164,7 @@ class _SurfaceLayer extends StatefulWidget {
   final Animation<double>? press;
   final bool isOverlay;
   final bool isFaceCovered;
+  final AlignmentGeometry textureAlignment;
 
   @override
   State<_SurfaceLayer> createState() => _SurfaceLayerState();
@@ -279,6 +291,9 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
           press: widget.press,
           isOverlay: widget.isOverlay,
           isFaceCovered: widget.isFaceCovered,
+          textureAlignment: widget.textureAlignment.resolve(
+            Directionality.maybeOf(context),
+          ),
           direction: PhysicalLight.of(context),
           tone: PhysicalLight.toneOf(context),
           pixelRatio: MediaQuery.devicePixelRatioOf(context),
@@ -303,6 +318,7 @@ class _SurfacePainter extends CustomPainter {
     required this.press,
     required this.isOverlay,
     required this.isFaceCovered,
+    required this.textureAlignment,
     required this.direction,
     required this.tone,
     required this.pixelRatio,
@@ -331,6 +347,7 @@ class _SurfacePainter extends CustomPainter {
   final Animation<double>? press;
   final bool isOverlay;
   final bool isFaceCovered;
+  final Alignment textureAlignment;
   final ValueListenable<Offset> direction;
   final ValueListenable<LightTone> tone;
   final double pixelRatio;
@@ -460,6 +477,7 @@ class _SurfacePainter extends CustomPainter {
       pixelRatio,
       outline,
       color,
+      textureAlignment,
       material.texture,
       material.roughness,
       material.specularTint,
@@ -494,6 +512,10 @@ class _SurfacePainter extends CustomPainter {
   }) {
     final isBaking = pass == _Pass.bake;
     final texture = shaped.texture;
+    final textureOrigin = Offset(
+      textureAlignment.x * size.width / 2,
+      textureAlignment.y * size.height / 2,
+    );
     final isLive = !isOverlay && !isBaking;
     final neon = isLive ? shaped.effectOf(PhysicalEffectKind.neon) : null;
     final flame = isLive ? shaped.effectOf(PhysicalEffectKind.flame) : null;
@@ -541,8 +563,8 @@ class _SurfacePainter extends CustomPainter {
       ..setFloat(47, isWatered ? decals.dew : 0)
       ..setFloat(48, falling?.intensity ?? 0)
       ..setFloat(49, isBaking ? 0 : seconds.value)
-      ..setFloat(50, 0)
-      ..setFloat(51, 0)
+      ..setFloat(50, textureOrigin.dx)
+      ..setFloat(51, textureOrigin.dy)
       ..setFloat(52, decals.showHints && isWatered ? 1 : 0)
       ..setFloat(53, _Drawn.kindOf(neon: neon, flame: flame))
       ..setFloat(54, glowing?.intensity ?? 0)
@@ -628,6 +650,7 @@ class _SurfacePainter extends CustomPainter {
         oldDelegate.press != press ||
         oldDelegate.isOverlay != isOverlay ||
         oldDelegate.isFaceCovered != isFaceCovered ||
+        oldDelegate.textureAlignment != textureAlignment ||
         oldDelegate.direction != direction ||
         oldDelegate.tone != tone ||
         oldDelegate.world != world ||

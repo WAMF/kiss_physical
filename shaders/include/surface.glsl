@@ -68,7 +68,8 @@ uniform vec3 uScratch;
 // Water on top of the surface: dew and rain, each from 0 to 1, and the
 // time in seconds that animates the rain.
 uniform vec3 uWater;
-// xy are not read. z: above 0.5, draws the hint map in place of the
+// xy: where the texture is pinned, from the centre of the body in
+// logical pixels. z: above 0.5, draws the hint map in place of the
 // surface, with hollows in red and water in blue, over shelter in grey.
 //
 // Metal gives every uniform a buffer of its own and allows 31, so values
@@ -956,7 +957,7 @@ void main() {
   }
   if (uTexture.x > 0.5 && overlay < 0.5 && !relit) {
     float strength = uTexture.z;
-    vec2 q = p / max(uTexture.y, 0.05);
+    vec2 q = (p - uWorld.xy) / max(uTexture.y, 0.05);
     vec4 grain = sampleTexture(uTexture.x, q);
     normal = normalize(normal + vec3(grain.xy * strength, 0.0));
     surfaceColor = mix(surfaceColor, uSecondColor, grain.z * strength);
