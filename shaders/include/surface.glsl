@@ -152,6 +152,8 @@ const vec3 EMBER_COLOR = vec3(1.0, 0.36, 0.06);
 // How far into the scorched band embers reach, as a share of its depth.
 const float EMBER_REACH = 0.7;
 const vec3 FLAME_BLUE = vec3(0.02, 0.1, 0.85);
+// The least heat at which a flame shows any light of its own.
+const float GLOW_FROM = 0.02;
 const float EFFECT_NEON = 1.0;
 const float EFFECT_FLAME = 2.0;
 const float VESSEL_GLASS = 1.0;
@@ -931,15 +933,41 @@ float firelight(vec2 p, vec2 side, float time) {
       (0.8 + 0.2 * valueNoise(vec2(alongRim(p) * 0.015, time * 5.0)));
 }
 
+// How far a point is from the body's outline: what roundedBox gives in x,
+// without working out which way the outline faces.
+float boxDistance(vec2 p, vec2 halfSize) {
+  float radius = p.x < 0.0
+      ? (p.y < 0.0 ? uRadii.x : uRadii.w)
+      : (p.y < 0.0 ? uRadii.y : uRadii.z);
+  vec2 q = abs(p) - halfSize + radius;
+  float outside = length(max(q, 0.0));
+  if (outside > 0.0001) {
+    return outside + min(max(q.x, q.y), 0.0) - radius;
+  }
+  vec2 depth = -q;
+  float wedge = MEDIAL_BLEND * depth.x * depth.y /
+      max(depth.x + depth.y, 0.0001);
+  float nearSide =
+      clamp(0.5 + 0.5 * (depth.y - depth.x) / max(wedge, 0.0001), 0.0, 1.0);
+  float nearest = mix(depth.y, depth.x, nearSide) -
+      wedge * nearSide * (1.0 - nearSide);
+  return -nearest - radius;
+}
+
 // How far a point is from the column a body sweeps out as it is carried
 // [reach] pixels against [down]: everything a flame rooted on the body can
 // fill on its way up. Following the whole sweep, and not only where it ends,
 // keeps a flame taller than its body joined to it.
-float risenFrom(vec2 q, vec2 down, float reach, vec2 halfSize) {
-  float nearest = roundedBox(q, halfSize).x;
+//
+// [start] is roundedBox at [q]. Where the outline there faces down, the
+// body only gets further away as it is carried, so the sweep is not
+// followed.
+float risenFrom(vec3 start, vec2 q, vec2 down, float reach, vec2 halfSize) {
+  float nearest = start.x;
+  if (dot(start.yz, down) >= 0.0) return nearest;
   for (int rung = 1; rung <= FLAME_RUNGS; rung++) {
     float share = float(rung) / float(FLAME_RUNGS);
-    nearest = min(nearest, roundedBox(q + down * reach * share, halfSize).x);
+    nearest = min(nearest, boxDistance(q + down * reach * share, halfSize));
   }
   return nearest;
 }
@@ -955,6 +983,9 @@ float risenFrom(vec2 q, vec2 down, float reach, vec2 halfSize) {
 // the tongues, and noise that eats into them near their tips tears licks
 // off to rise on their own. Sparks ride the same stream.
 //
+// Most of what is drawn round a fire is empty air, so each layer of noise
+// is only worked out where what came before leaves it something to show.
+//
 // Returns a premultiplied colour that adds to what is behind it, and sets
 // [thrown] to how strongly the fire lights the body's rim at this point.
 vec4 flames(vec2 p, vec2 halfSize, float distance, float time,
@@ -966,69 +997,7 @@ vec4 flames(vec2 p, vec2 halfSize, float distance, float time,
   float height = max(uEffectShape.x * intensity, 1.0);
   float outside = max(distance, 0.0);
   float lift = clamp(outside / height, 0.0, 1.0);
-
-  vec2 stream = p + uEffectFlow * 70.0;
-  vec2 roll = vec2(fbm(stream * 0.03 + 17.0), fbm(stream * 0.03 + 71.0)) - 0.5;
-  vec2 eddy = vec2(valueNoise(stream * 0.11 + vec2(5.0, time * 0.7)),
-                   valueNoise(stream * 0.11 + vec2(33.0, -time * 0.9))) -
-      0.5;
-  vec2 q = p + (roll * 30.0 + eddy * 10.0) * turbulence * (0.2 + lift);
-
-  vec2 rising = q + uEffectFlow * 95.0;
-  float tongues =
-      drawnOut(rising, down, 0.04, 16.0);
-  float reach = height * (0.2 + 1.1 * tongues);
-  float soften = 2.0 + 0.16 * height * lift;
-  float tongue = 1.0 - smoothstep(-soften, soften,
-                                  risenFrom(q, down, reach, halfSize));
-  float fringe = 1.0 - smoothstep(0.0, 3.0 + 0.14 * height * tongues,
-                                  roundedBox(q, halfSize).x);
-  float torn = fbm(rising * 0.06 + 40.0);
-  float fade = (1.0 - lift * lift) * smoothstep(-2.5, 1.0, distance);
-  float heat = max(tongue, 0.7 * fringe) * fade *
-      smoothstep(0.9 * lift - 0.15, 0.9 * lift + 0.25, torn + 0.25);
-
-  // The body of a flame is not one flat sheet: hotter and cooler gas churn
-  // through it as it rises, so it is streaked lighter and darker along its
-  // length. That churn, how far up the flame the point is and how thin the
-  // flame is there together set its temperature, and the temperature sets
-  // the colour: deep red where cool, through orange and yellow to near
-  // white at its hottest.
-  float churn = fbm(rising * 0.075 +
-                    90.0);
-  float wisp =
-      valueNoise(rising * 0.2);
-  float inner = clamp(0.15 + 1.2 * churn + 0.4 * (wisp - 0.5), 0.0, 1.3);
-  float temperature =
-      clamp(heat * (1.0 - 0.75 * lift) * (0.35 + inner), 0.0, 1.0);
-
-  vec3 fire = uEffectColor * uEffectColor;
-  vec3 hot = mix(fire, FLAME_WHITE, 0.8);
-  vec3 ember = fire * vec3(0.6, 0.1, 0.03);
-  vec3 color = mix(ember, fire, smoothstep(0.05, 0.35, temperature));
-  color = mix(color, mix(fire, FLAME_YELLOW, 0.5),
-              smoothstep(0.3, 0.6, temperature));
-  color = mix(color, hot, smoothstep(0.55, 0.9, temperature));
-  color *= 0.5 + 0.8 * inner;
-
-  // Where a flame leaves the fuel it burns clean and blue. The blue fades
-  // up into the body over a quarter of its height and keeps some of the
-  // colour beneath it, so there is no line where one ends.
-  float rootFade = 1.0 - smoothstep(0.0, 0.26, lift);
-  float root = rootFade * rootFade * smoothstep(0.2, 0.7, heat) *
-      (0.5 + 0.5 * valueNoise(vec2(alongRim(p) * 0.09, time * 4.0)));
-  color = mix(color, FLAME_BLUE + 0.35 * color, 0.7 * root);
-  float glow = smoothstep(0.02, 0.45, heat) * (0.7 + 0.3 * inner);
-
-  // Fire lights the air round it. A soft halo follows the tongues loosely
-  // and falls away with distance, adding light without hiding what is
-  // behind.
-  float flicker =
-      0.75 + 0.25 * valueNoise(vec2(alongRim(p) * 0.03, time * 5.0));
-  float halo = intensity * flicker * fade *
-      exp(-max(risenFrom(q, down, reach * 0.6, halfSize), 0.0) /
-          (0.3 * height));
-  vec3 haloColor = fire * vec3(1.0, 0.55, 0.25);
+  thrown = firelight(p, side, time);
 
   // Sparks are thrown off the tips, so they only show over the top of the
   // body, from where the tongues thin out upwards.
@@ -1036,16 +1005,100 @@ vec4 flames(vec2 p, vec2 halfSize, float distance, float time,
   float overTips = smoothstep(0.0, 8.0, roundedBox(p + down * 0.4 * height,
                                                    halfSize).x) *
       (1.0 - smoothstep(-4.0, 4.0, roundedBox(p + down * headroom, halfSize).x));
-  vec2 carried = p + uEffectFlow * 120.0 + roll * 40.0 * turbulence;
-  vec2 cell = floor(carried / 24.0);
-  vec2 speck = carried -
-      (cell + 0.2 + 0.6 * vec2(hash(cell + 2.0), hash(cell + 6.0))) * 24.0;
-  float spark = intensity * step(0.88, hash(cell + 11.0)) *
-      (1.0 - smoothstep(0.5, 1.5, length(speck))) * overTips *
-      smoothstep(1.0, 4.0, outside) *
-      (1.0 - smoothstep(0.6, 1.0, outside / headroom));
+  bool alight = lift < 1.0;
+  if (!alight && overTips <= 0.0) return vec4(0.0);
 
-  thrown = firelight(p, side, time);
+  vec2 stream = p + uEffectFlow * 70.0;
+  vec2 roll = vec2(fbm(stream * 0.03 + 17.0), fbm(stream * 0.03 + 71.0)) - 0.5;
+  vec3 fire = uEffectColor * uEffectColor;
+  vec3 hot = mix(fire, FLAME_WHITE, 0.8);
+  vec3 color = vec3(0.0);
+  float glow = 0.0;
+  float halo = 0.0;
+
+  if (alight) {
+    vec2 eddy = vec2(valueNoise(stream * 0.11 + vec2(5.0, time * 0.7)),
+                     valueNoise(stream * 0.11 + vec2(33.0, -time * 0.9))) -
+        0.5;
+    vec2 q = p + (roll * 30.0 + eddy * 10.0) * turbulence * (0.2 + lift);
+    vec2 rising = q + uEffectFlow * 95.0;
+    vec3 start = roundedBox(q, halfSize);
+    bool risesHere = dot(start.yz, down) < 0.0;
+    float soften = 2.0 + 0.16 * height * lift;
+    float widestFringe = 3.0 + 0.14 * height;
+    float fade = (1.0 - lift * lift) * smoothstep(-2.5, 1.0, distance);
+
+    float reach = 0.0;
+    float heat = 0.0;
+    if (risesHere || start.x < max(soften, widestFringe)) {
+      float tongues = drawnOut(rising, down, 0.04, 16.0);
+      reach = height * (0.2 + 1.1 * tongues);
+      float tongue = 1.0 - smoothstep(-soften, soften,
+                                      risenFrom(start, q, down, reach,
+                                                halfSize));
+      float fringe = 1.0 - smoothstep(0.0, 3.0 + 0.14 * height * tongues,
+                                      start.x);
+      float kindled = max(tongue, 0.7 * fringe) * fade;
+      if (kindled > 0.0) {
+        float torn = fbm(rising * 0.06 + 40.0);
+        heat = kindled *
+            smoothstep(0.9 * lift - 0.15, 0.9 * lift + 0.25, torn + 0.25);
+      }
+    }
+
+    // The body of a flame is not one flat sheet: hotter and cooler gas
+    // churn through it as it rises, so it is streaked lighter and darker
+    // along its length. That churn, how far up the flame the point is and
+    // how thin the flame is there together set its temperature, and the
+    // temperature sets the colour: deep red where cool, through orange and
+    // yellow to near white at its hottest.
+    if (heat > GLOW_FROM) {
+      float churn = fbm(rising * 0.075 + 90.0);
+      float wisp = valueNoise(rising * 0.2);
+      float inner = clamp(0.15 + 1.2 * churn + 0.4 * (wisp - 0.5), 0.0, 1.3);
+      float temperature =
+          clamp(heat * (1.0 - 0.75 * lift) * (0.35 + inner), 0.0, 1.0);
+
+      vec3 ember = fire * vec3(0.6, 0.1, 0.03);
+      color = mix(ember, fire, smoothstep(0.05, 0.35, temperature));
+      color = mix(color, mix(fire, FLAME_YELLOW, 0.5),
+                  smoothstep(0.3, 0.6, temperature));
+      color = mix(color, hot, smoothstep(0.55, 0.9, temperature));
+      color *= 0.5 + 0.8 * inner;
+
+      // Where a flame leaves the fuel it burns clean and blue. The blue
+      // fades up into the body over a quarter of its height and keeps some
+      // of the colour beneath it, so there is no line where one ends.
+      float rootFade = 1.0 - smoothstep(0.0, 0.26, lift);
+      float root = rootFade * rootFade * smoothstep(0.2, 0.7, heat) *
+          (0.5 + 0.5 * valueNoise(vec2(alongRim(p) * 0.09, time * 4.0)));
+      color = mix(color, FLAME_BLUE + 0.35 * color, 0.7 * root);
+      glow = smoothstep(GLOW_FROM, 0.45, heat) * (0.7 + 0.3 * inner);
+    }
+
+    // Fire lights the air round it. A soft halo follows the tongues loosely
+    // and falls away with distance, adding light without hiding what is
+    // behind.
+    float flicker =
+        0.75 + 0.25 * valueNoise(vec2(alongRim(p) * 0.03, time * 5.0));
+    halo = intensity * flicker * fade *
+        exp(-max(risenFrom(start, q, down, reach * 0.6, halfSize), 0.0) /
+            (0.3 * height));
+  }
+  vec3 haloColor = fire * vec3(1.0, 0.55, 0.25);
+
+  float spark = 0.0;
+  if (overTips > 0.0) {
+    vec2 carried = p + uEffectFlow * 120.0 + roll * 40.0 * turbulence;
+    vec2 cell = floor(carried / 24.0);
+    vec2 speck = carried -
+        (cell + 0.2 + 0.6 * vec2(hash(cell + 2.0), hash(cell + 6.0))) * 24.0;
+    spark = intensity * step(0.88, hash(cell + 11.0)) *
+        (1.0 - smoothstep(0.5, 1.5, length(speck))) * overTips *
+        smoothstep(1.0, 4.0, outside) *
+        (1.0 - smoothstep(0.6, 1.0, outside / headroom));
+  }
+
   return vec4(sqrt(color) * glow + sqrt(haloColor) * 0.5 * halo * (1.0 - glow) +
                   sqrt(hot) * spark,
               0.5 * glow + 0.1 * halo + 0.5 * spark);
