@@ -55,6 +55,17 @@ untouched.
 - `physical_plain.frag` must light a body exactly as the full program does.
   `test/plain_shader_parity_test.dart` holds the two together.
 
+## Performance
+
+`example/lib/benchmark/main.dart` shows one shader program at a time under a
+moving light and prints the frames a second each reaches. Run it on a real
+device in profile mode before and after a change to a shader:
+
+```bash
+cd example
+flutter run --profile -t lib/benchmark/main.dart
+```
+
 ## Versions
 
 The package follows semantic versioning. Before 1.0.0, a minor version may
