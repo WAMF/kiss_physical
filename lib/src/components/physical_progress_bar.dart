@@ -4,6 +4,7 @@ import 'package:kiss_physical/src/surface/physical_surface.dart';
 
 class _Bar {
   static const height = 12.0;
+  static const percent = 100;
   static const fillDuration = Duration(milliseconds: 250);
   static const fillCurve = Curves.easeOut;
 }
@@ -19,6 +20,7 @@ class PhysicalProgressBar extends StatelessWidget {
     required this.barColor,
     required this.trackColor,
     this.height = _Bar.height,
+    this.semanticLabel,
     super.key,
   });
 
@@ -35,6 +37,40 @@ class PhysicalProgressBar extends StatelessWidget {
   /// The thickness of the track in logical pixels.
   final double height;
 
+  /// What the bar is called by screen readers, which also hear how full it
+  /// is as a percentage.
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final filled = fraction.clamp(0.0, 1.0);
+    return Semantics(
+      label: semanticLabel,
+      value: '${(filled * _Bar.percent).round()}%',
+      child: _Track(
+        filled: filled,
+        height: height,
+        barColor: barColor,
+        trackColor: trackColor,
+      ),
+    );
+  }
+}
+
+/// The recessed track and the bar that glides along it to [filled].
+class _Track extends StatelessWidget {
+  const _Track({
+    required this.filled,
+    required this.height,
+    required this.barColor,
+    required this.trackColor,
+  });
+
+  final double filled;
+  final double height;
+  final Color barColor;
+  final Color trackColor;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -44,7 +80,7 @@ class PhysicalProgressBar extends StatelessWidget {
         material: PhysicalMaterial.well,
         borderRadius: PhysicalSurface.stadium,
         child: TweenAnimationBuilder<double>(
-          tween: Tween(end: fraction.clamp(0.0, 1.0)),
+          tween: Tween(end: filled),
           duration: _Bar.fillDuration,
           curve: _Bar.fillCurve,
           builder: (context, filled, fill) => FractionallySizedBox(

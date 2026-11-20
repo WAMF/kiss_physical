@@ -66,8 +66,20 @@ await PhysicalShader.precacheFor([
 
 `WorldLight` samples the gyroscope and accelerometer at a modest rate, only
 on handheld devices, only while the app is in the foreground, and not at all
-when the user asked for reduced motion. On desktop and web the light rests
-above the top-left of the screen.
+when the user asked for reduced motion. On desktop and web, where there is
+no tilt to follow, the light rests above the top-left of the screen; use
+`PointerLight` there to carry it with the mouse or a dragged finger:
+
+```dart
+runApp(const PointerLight(child: MyApp()));
+```
+
+With reduced motion the light rests, and flames, rain, liquid and neon
+flicker hold still.
+
+If a program cannot be compiled on a device, the bodies it draws stay flat
+and `PhysicalShader.hasFailed` turns true, so an app can fall back to a
+plainer look.
 
 Without any light above them, surfaces use that same resting light
 (`PhysicalLight.still`), so widget tests and previews need no set-up.
