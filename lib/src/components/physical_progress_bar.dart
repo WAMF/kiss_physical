@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
+import 'package:kiss_physical/src/material/physical_texture.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
 class _Bar {
@@ -20,6 +21,7 @@ class PhysicalProgressBar extends StatelessWidget {
     required this.barColor,
     required this.trackColor,
     this.height = _Bar.height,
+    this.texture = PhysicalTexture.none,
     this.semanticLabel,
     super.key,
   });
@@ -37,6 +39,10 @@ class PhysicalProgressBar extends StatelessWidget {
   /// The thickness of the track in logical pixels.
   final double height;
 
+  /// What the track is made of, plain unless a texture is given. The bar
+  /// stays plain in its own colour, so how full it is still shows.
+  final PhysicalTexture texture;
+
   /// What the bar is called by screen readers, which also hear how full it
   /// is as a percentage.
   final String? semanticLabel;
@@ -52,6 +58,7 @@ class PhysicalProgressBar extends StatelessWidget {
         height: height,
         barColor: barColor,
         trackColor: trackColor,
+        texture: texture,
       ),
     );
   }
@@ -64,12 +71,14 @@ class _Track extends StatelessWidget {
     required this.height,
     required this.barColor,
     required this.trackColor,
+    required this.texture,
   });
 
   final double filled;
   final double height;
   final Color barColor;
   final Color trackColor;
+  final PhysicalTexture texture;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +86,7 @@ class _Track extends StatelessWidget {
       height: height,
       child: PhysicalSurface(
         color: trackColor,
-        material: PhysicalMaterial.well,
+        material: PhysicalMaterial.well.withTexture(texture),
         borderRadius: PhysicalSurface.stadium,
         child: TweenAnimationBuilder<double>(
           tween: Tween(end: filled),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kiss_physical/src/material/disabled_look.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
+import 'package:kiss_physical/src/material/physical_texture.dart';
 import 'package:kiss_physical/src/surface/focus_ring.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
@@ -30,6 +31,7 @@ class PhysicalSlider extends StatefulWidget {
     this.divisions,
     this.thumbDiameter = defaultThumbDiameter,
     this.trackHeight = defaultTrackHeight,
+    this.texture = PhysicalTexture.none,
     this.semanticLabel,
     this.focusNode,
     super.key,
@@ -79,6 +81,10 @@ class PhysicalSlider extends StatefulWidget {
 
   /// The thickness of the track in logical pixels.
   final double trackHeight;
+
+  /// What the bead and the track are made of, plain unless a texture is
+  /// given. The bar stays plain in its own colour, so the value still shows.
+  final PhysicalTexture texture;
 
   /// What the slider is called by screen readers.
   final String? semanticLabel;
@@ -199,6 +205,7 @@ class _PhysicalSliderState extends State<PhysicalSlider> {
                           widget.thumbDiameter / 2 + _fraction * travel,
                       barColor: _shown(widget.barColor),
                       trackColor: widget.trackColor,
+                      trackMaterial: _made(PhysicalMaterial.well),
                       barMaterial: _shownMaterial(PhysicalMaterial.gloss),
                     ),
                     Align(
@@ -206,7 +213,7 @@ class _PhysicalSliderState extends State<PhysicalSlider> {
                       child: _Thumb(
                         diameter: widget.thumbDiameter,
                         color: _shown(widget.thumbColor),
-                        material: _shownMaterial(PhysicalMaterial.bead),
+                        material: _shownMaterial(_made(PhysicalMaterial.bead)),
                         showsFocus: _showsFocus,
                       ),
                     ),
@@ -222,6 +229,10 @@ class _PhysicalSliderState extends State<PhysicalSlider> {
 
   Color _shown(Color color) {
     return _isEnabled ? color : DisabledLook.frosted(color);
+  }
+
+  PhysicalMaterial _made(PhysicalMaterial finish) {
+    return finish.withTexture(widget.texture);
   }
 
   PhysicalMaterial _shownMaterial(PhysicalMaterial material) {
@@ -243,6 +254,7 @@ class _Track extends StatelessWidget {
     required this.filledWidth,
     required this.barColor,
     required this.trackColor,
+    required this.trackMaterial,
     required this.barMaterial,
   });
 
@@ -250,6 +262,7 @@ class _Track extends StatelessWidget {
   final double filledWidth;
   final Color barColor;
   final Color trackColor;
+  final PhysicalMaterial trackMaterial;
   final PhysicalMaterial barMaterial;
 
   @override
@@ -258,7 +271,7 @@ class _Track extends StatelessWidget {
       height: height,
       child: PhysicalSurface(
         color: trackColor,
-        material: PhysicalMaterial.well,
+        material: trackMaterial,
         borderRadius: PhysicalSurface.stadium,
         child: Align(
           alignment: AlignmentDirectional.centerStart,

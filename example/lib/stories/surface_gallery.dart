@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_physical/kiss_physical.dart';
+import 'package:kiss_physical_example/support/substance_knob.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -16,29 +17,8 @@ Widget buildPhysicalSurfaceGallery(BuildContext context) {
       min: 0.1,
       max: 1,
     ),
-    texture: context.knobs.object.dropdown<PhysicalTexture>(
-      label: 'Made of',
-      options: _Substances.all.values.toList(),
-      labelBuilder: _Substances.nameOf,
-    ),
+    texture: SubstanceKnob.of(context),
   );
-}
-
-class _Substances {
-  static const all = {
-    'plain': PhysicalTexture.none,
-    'oak': PhysicalTexture.oak,
-    'walnut': PhysicalTexture.walnut,
-    'stainless steel': PhysicalTexture.stainlessSteel,
-    'brass': PhysicalTexture.brass,
-    'granite': PhysicalTexture.granite,
-    'carrara': PhysicalTexture.carrara,
-    'plastic': PhysicalTexture.plastic,
-  };
-
-  static String nameOf(PhysicalTexture texture) {
-    return all.entries.firstWhere((entry) => entry.value == texture).key;
-  }
 }
 
 /// Showcases the physical materials. Drag or hover to steer the light the

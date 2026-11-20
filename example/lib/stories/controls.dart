@@ -3,6 +3,7 @@ import 'package:kiss_color/kiss_color.dart';
 import 'package:kiss_layout/kiss_layout.dart';
 import 'package:kiss_physical/kiss_physical.dart';
 import 'package:kiss_physical_example/support/stage.dart';
+import 'package:kiss_physical_example/support/substance_knob.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -24,6 +25,8 @@ Widget buildPillButtons(BuildContext context) {
   final colors = SemanticColors.of(context).data;
   final label = context.knobs.string(label: 'Label', initialValue: 'Save');
   final enabled = context.knobs.boolean(label: 'Enabled', initialValue: true);
+  final material =
+      PhysicalMaterial.gloss.withTexture(SubstanceKnob.of(context));
   final onPressed = enabled ? () {} : null;
   return Stage(
     child: Wrap(
@@ -34,6 +37,7 @@ Widget buildPillButtons(BuildContext context) {
           PhysicalPillButton(
             color: role.background,
             foregroundColor: role.foreground,
+            material: material,
             minimumSize: layout.actionSizes.medium,
             onPressed: onPressed,
             child: Text(label),
@@ -54,6 +58,7 @@ Widget buildStyledButtons(BuildContext context) {
   final style = physicalButtonStyle(
     color: colors.brand.primary.background,
     foregroundColor: colors.brand.primary.foreground,
+    material: PhysicalMaterial.gloss.withTexture(SubstanceKnob.of(context)),
   );
   return Stage(
     child: Wrap(
@@ -81,6 +86,7 @@ Widget buildIconButtons(BuildContext context) {
   final layout = Layout.of(context);
   final colors = SemanticColors.of(context).data;
   final enabled = context.knobs.boolean(label: 'Enabled', initialValue: true);
+  final material = PhysicalMaterial.bead.withTexture(SubstanceKnob.of(context));
   final onPressed = enabled ? () {} : null;
   return Stage(
     child: Wrap(
@@ -91,12 +97,14 @@ Widget buildIconButtons(BuildContext context) {
           PhysicalIconButton(
             diameter: size.height,
             color: colors.brand.primary.background,
+            material: material,
             onPressed: onPressed,
             tooltip: 'Add',
             icon: Icon(Icons.add, color: colors.brand.primary.foreground),
           ),
         PhysicalIconButton(
           diameter: layout.heroSizes.small.height,
+          material: material,
           onPressed: onPressed,
           tooltip: 'Done',
           icon: Icon(Icons.check, color: colors.secondary.foreground),
@@ -120,7 +128,7 @@ Widget buildPressable(BuildContext context) {
       child: PhysicalPressable(
         onTap: () {},
         color: colors.secondary.background,
-        material: PhysicalMaterial.satin,
+        material: PhysicalMaterial.satin.withTexture(SubstanceKnob.of(context)),
         borderRadius: BorderRadius.circular(layout.cornerRadii.medium),
         semanticLabel: 'Open',
         child: const Padding(
@@ -149,15 +157,21 @@ Widget buildSlider(BuildContext context) {
     child: _SliderDemo(
       divisions: snaps ? _Sample.sliderSteps : null,
       isEnabled: enabled,
+      texture: SubstanceKnob.of(context),
     ),
   );
 }
 
 class _SliderDemo extends StatefulWidget {
-  const _SliderDemo({required this.divisions, required this.isEnabled});
+  const _SliderDemo({
+    required this.divisions,
+    required this.isEnabled,
+    required this.texture,
+  });
 
   final int? divisions;
   final bool isEnabled;
+  final PhysicalTexture texture;
 
   @override
   State<_SliderDemo> createState() => _SliderDemoState();
@@ -179,6 +193,7 @@ class _SliderDemoState extends State<_SliderDemo> {
       barColor: colors.brand.primary.background,
       trackColor: foreground.withValues(alpha: _Sample.trackOpacity),
       thumbColor: foreground,
+      texture: widget.texture,
     );
   }
 }
@@ -199,6 +214,7 @@ Widget buildProgressBar(BuildContext context) {
       ),
       barColor: colors.brand.primary.background,
       trackColor: colors.secondary.background,
+      texture: SubstanceKnob.of(context),
     ),
   );
 }

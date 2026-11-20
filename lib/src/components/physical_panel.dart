@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_physical/src/components/physical_defaults.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
+import 'package:kiss_physical/src/material/physical_texture.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
 /// A physical panel that lies flush with what is behind it, or floats above
@@ -12,6 +13,7 @@ class PhysicalPanel extends StatelessWidget {
     this.color,
     this.borderRadius,
     this.isRaised = false,
+    this.texture = PhysicalTexture.none,
     super.key,
   }) : _isDocked = false;
 
@@ -21,6 +23,7 @@ class PhysicalPanel extends StatelessWidget {
     required this.child,
     this.color,
     this.isRaised = false,
+    this.texture = PhysicalTexture.none,
     super.key,
   })  : borderRadius = null,
         _isDocked = true;
@@ -39,6 +42,9 @@ class PhysicalPanel extends StatelessWidget {
   /// Whether the panel floats above its parent and casts a shadow.
   final bool isRaised;
 
+  /// What the panel is made of, plain unless a texture is given.
+  final PhysicalTexture texture;
+
   final bool _isDocked;
 
   BorderRadius _radiusIn(BuildContext context) {
@@ -53,7 +59,8 @@ class PhysicalPanel extends StatelessWidget {
     return PhysicalSurface(
       color: color ?? PhysicalDefaults.surfaceColor(context),
       material:
-          isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel,
+          (isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel)
+              .withTexture(texture),
       borderRadius: _radiusIn(context),
       clipBehavior: _isDocked ? Clip.hardEdge : Clip.none,
       child: _isDocked
