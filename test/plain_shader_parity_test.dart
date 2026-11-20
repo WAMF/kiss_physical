@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'shader_source.dart';
 
 class _Shaders {
-  static const full = 'shaders/physical_surface.frag';
+  static const full = 'shaders/physical_effects.frag';
   static const plain = 'shaders/physical_plain.frag';
   static final constant = RegExp(
     r'^const (\w+) (\w+) = ([^;]+);',

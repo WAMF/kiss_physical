@@ -66,14 +66,12 @@ class _Scenes {
           .withEffect(const PhysicalEffect.rain()),
     ),
     _Scene.slab(
-      'liquid in glass',
-      PhysicalMaterial.gloss.withVessel(const PhysicalVessel.liquid()),
+      'glass',
+      PhysicalMaterial.gloss.withVessel(const PhysicalVessel.glass()),
     ),
     _Scene.slab(
-      'overgrown wood',
-      _wood.withDecals(
-        const PhysicalDecals(moss: 0.45, grass: 0.5, flowers: 0.8),
-      ),
+      'dewy wood',
+      _wood.withDecals(const PhysicalDecals(dew: 0.6)),
     ),
     const _Scene(
       'pegboard, full screen',

@@ -9,7 +9,7 @@ First release.
   `PhysicalLens`, `PhysicalPegboard`, `PhysicalParallaxLayer` and
   `PhysicalDotGrid`.
 - **Materials:** `PhysicalMaterial` presets, with textures (woods, marbles,
-  stones, metals, plastic), wear, growth, vessels of glass and liquid, and
+  stones, metals, plastic), wear, dew, glass, and
   rain, flame and neon effects.
 - **Components:** `PhysicalCard`, `PhysicalPanel`, `PhysicalPillButton`,
   `PhysicalIconButton`, `PhysicalSlider` and `PhysicalProgressBar`, with
@@ -17,5 +17,5 @@ First release.
 - **Shaders:** one program per substance, compiled on first use;
   `PhysicalShader.precacheFor` warms the ones an app shows first and
   `PhysicalShader.hasFailed` reports a device that cannot compile them.
-- **Accessibility:** reduced motion rests the light and holds flames, rain,
-  liquid and flicker still.
+- **Accessibility:** reduced motion rests the light and holds flames, rain
+  and flicker still.

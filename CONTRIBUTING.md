@@ -52,7 +52,7 @@ untouched.
 
 - `shaders/include/surface.glsl` is the source of every surface program.
   Each `.frag` beside it sets switches and includes it: one per substance,
-  one for effects on a bare body, and `physical_surface.frag` with growth.
+  and one for effects on a bare body.
 - Metal allows a program 31 uniforms. `test/shader_limits_test.dart` counts
   them for every program. Put values that belong together in one uniform.
 - Uniforms are set by position from Dart, so a new one goes at the end of

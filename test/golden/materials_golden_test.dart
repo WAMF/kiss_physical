@@ -111,33 +111,24 @@ void main() {
   );
 
   testWidgets(
-    'growth',
+    'decals',
     (tester) async {
-      await expectSheet(tester, 'growth', [
-        slab(
-          _of(PhysicalTexture.slate)
-              .withDecals(const PhysicalDecals(moss: 0.6)),
-        ),
-        slab(
-          _of(PhysicalTexture.granite)
-              .withDecals(const PhysicalDecals(grass: 0.7)),
-        ),
-        slab(
-          _of(PhysicalTexture.travertine).withDecals(
-            const PhysicalDecals(moss: 0.5, grass: 0.6, flowers: 0.7),
-          ),
-        ),
+      await expectSheet(tester, 'decals', [
         slab(
           _of(PhysicalTexture.copper)
               .withDecals(const PhysicalDecals(dew: 0.7)),
         ),
         slab(
+          _of(PhysicalTexture.granite.imperfect(0.7))
+              .withDecals(const PhysicalDecals(dew: 0.5)),
+        ),
+        slab(
           _of(PhysicalTexture.oak).withDecals(
-            const PhysicalDecals(moss: 0.4, dew: 0.5, showHints: true),
+            const PhysicalDecals(dew: 0.5, showHints: true),
           ),
         ),
         slab(
-          PhysicalMaterial.satin.withDecals(const PhysicalDecals(moss: 0.8)),
+          PhysicalMaterial.satin.withDecals(const PhysicalDecals(dew: 0.8)),
         ),
       ]);
     },
@@ -178,7 +169,6 @@ void main() {
         ),
         slab(
           _of(PhysicalTexture.slate)
-              .withDecals(const PhysicalDecals(moss: 0.55))
               .withEffect(const PhysicalEffect.rain(intensity: 0.9)),
         ),
       ]);
@@ -194,21 +184,6 @@ void main() {
         slab(
           PhysicalMaterial.gloss.withVessel(
             const PhysicalVessel.glass(color: Sheet.accent),
-          ),
-          borderRadius: PhysicalSurface.stadium,
-        ),
-        slab(
-          PhysicalMaterial.gloss.withVessel(
-            const PhysicalVessel.liquid(gravity: Offset(0, 1)),
-          ),
-        ),
-        slab(
-          PhysicalMaterial.bead.withVessel(
-            const PhysicalVessel.liquid(
-              color: Sheet.accent,
-              fill: 0.85,
-              gravity: Offset(0.3, 1),
-            ),
           ),
           borderRadius: PhysicalSurface.stadium,
         ),

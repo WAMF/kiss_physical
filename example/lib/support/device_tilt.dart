@@ -12,7 +12,7 @@ abstract final class DeviceTilt {
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android);
 
-  /// A knob for whether water, flames and liquid follow the device as it is
+  /// A knob for whether water and flames follow the device as it is
   /// tilted, on by default where the device can feel it. While it is on
   /// the use case's own "down" controls are set aside.
   static bool knob(BuildContext context) {
