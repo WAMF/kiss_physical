@@ -53,7 +53,7 @@ Future<void> expectSheet(
   String name,
   List<Widget> bodies,
 ) async {
-  await tester.runAsync(PhysicalShader.precache);
+  await tester.runAsync(PhysicalShader.precacheAll);
   final rows = (bodies.length / Sheet.columns).ceil();
   final height = rows * Sheet.swatch + (rows + 1) * Sheet.gap;
   await tester.binding.setSurfaceSize(Size(Sheet.width, height));

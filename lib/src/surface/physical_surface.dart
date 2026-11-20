@@ -11,8 +11,8 @@ import 'package:kiss_physical/src/material/physical_decals.dart';
 import 'package:kiss_physical/src/material/physical_effect.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/material/physical_vessel.dart';
-import 'package:kiss_physical/src/shader/physical_shader.dart';
 import 'package:kiss_physical/src/shader/physical_shader_brush.dart';
+import 'package:kiss_physical/src/shader/shader_programs.dart';
 import 'package:kiss_physical/src/surface/flow_drift.dart';
 import 'package:kiss_physical/src/surface/liquid_slosh.dart';
 import 'package:kiss_physical/src/surface/rain_map.dart';
@@ -162,9 +162,15 @@ class _SurfaceLayer extends StatefulWidget {
 
 class _SurfaceLayerState extends State<_SurfaceLayer>
     with SingleTickerProviderStateMixin {
-  final _brush = PhysicalShaderBrush(PhysicalShader.program);
-  final _bakeBrush = PhysicalShaderBrush(PhysicalShader.program);
-  final _plainBrush = PhysicalShaderBrush(PhysicalShader.plain);
+  final _brush = PhysicalShaderBrush();
+  final _bakeBrush = PhysicalShaderBrush();
+  final _plainBrush = PhysicalShaderBrush(
+    ShaderPrograms.surface(SurfaceProgram.plain).whenLoaded,
+  );
+
+  /// The program the layered brushes were last given, which says which
+  /// uniforms they take.
+  SurfaceProgram _layered = SurfaceProgram.plain;
   final _bake = SurfaceBake();
   final _resize = ResizeSnapshot();
   final _seconds = ValueNotifier<double>(0);
@@ -247,6 +253,17 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
     if (!_isAnimated) _clock.stop();
   }
 
+  /// Points the layered brushes at the program for [material]. A plain
+  /// body keeps the program it had, which still draws any water left on it.
+  void _useProgramOf(PhysicalMaterial material) {
+    final kind = SurfaceProgram.of(material);
+    if (kind == SurfaceProgram.plain) return;
+    final program = ShaderPrograms.surface(kind).whenLoaded;
+    _layered = kind;
+    _brush.program = program;
+    _bakeBrush.program = program;
+  }
+
   static double _secondsIn(Duration time) {
     return time.inMicroseconds / Duration.microsecondsPerSecond;
   }
@@ -254,6 +271,7 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
   @override
   Widget build(BuildContext context) {
     _world = PhysicalLight.gravityOf(context);
+    _useProgramOf(widget.material);
     return RepaintBoundary(
       child: CustomPaint(
         painter: _SurfacePainter(
@@ -272,6 +290,7 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
           drift: _drift,
           bubbles: _bubbles,
           rain: _rain,
+          layered: _layered,
           brush: _brush,
           bakeBrush: _bakeBrush,
           plainBrush: _plainBrush,
@@ -300,6 +319,7 @@ class _SurfacePainter extends CustomPainter {
     required this.drift,
     required this.bubbles,
     required this.rain,
+    required this.layered,
     required this.brush,
     required this.bakeBrush,
     required this.plainBrush,
@@ -312,8 +332,8 @@ class _SurfacePainter extends CustomPainter {
             press,
             seconds,
             resize,
-            PhysicalShader.program,
-            PhysicalShader.plain,
+            brush.program,
+            plainBrush.program,
           ]),
         );
 
@@ -346,6 +366,9 @@ class _SurfacePainter extends CustomPainter {
 
   /// The drops of rain on the surface.
   final SurfaceRain rain;
+
+  /// The program [brush] and [bakeBrush] draw with.
+  final SurfaceProgram layered;
   final PhysicalShaderBrush brush;
 
   /// Draws the layers that can be kept from frame to frame into [bake].
@@ -550,58 +573,60 @@ class _SurfacePainter extends CustomPainter {
       ..setFloat(44, texture.scratchDirection)
       ..setFloat(45, texture.scratchSpread)
       ..setFloat(46, texture.scratchClustering)
-      ..setFloat(47, isOverlay ? 0 : decals.moss)
-      ..setFloat(48, isOverlay ? 0 : decals.grass)
-      ..setFloat(49, isOverlay ? 0 : decals.flowers)
-      ..setFloat(50, petal.r)
-      ..setFloat(51, petal.g)
-      ..setFloat(52, petal.b)
-      ..setFloat(53, isWatered ? decals.dew : 0)
-      ..setFloat(54, falling?.intensity ?? 0)
-      ..setFloat(55, isBaking ? 0 : seconds.value)
-      ..setFloat(56, pull.dx)
-      ..setFloat(57, pull.dy)
-      ..setFloat(58, decals.showHints && isWatered ? 1 : 0)
-      ..setFloat(59, _Drawn.kindOf(neon: neon, flame: flame))
-      ..setFloat(60, glowing?.intensity ?? 0)
-      ..setFloat(61, neon?.tube ?? 0)
+      ..setFloat(47, isWatered ? decals.dew : 0)
+      ..setFloat(48, falling?.intensity ?? 0)
+      ..setFloat(49, isBaking ? 0 : seconds.value)
+      ..setFloat(50, pull.dx)
+      ..setFloat(51, pull.dy)
+      ..setFloat(52, decals.showHints && isWatered ? 1 : 0)
+      ..setFloat(53, _Drawn.kindOf(neon: neon, flame: flame))
+      ..setFloat(54, glowing?.intensity ?? 0)
+      ..setFloat(55, neon?.tube ?? 0)
       ..setFloat(
-        62,
+        56,
         neon?.flicker ?? flame?.turbulence ?? 0,
       )
-      ..setFloat(63, glow.r)
-      ..setFloat(64, glow.g)
-      ..setFloat(65, glow.b)
-      ..setFloat(66, (flame?.height ?? 0) * drift.rise)
-      ..setFloat(67, vessel?.opacity ?? 0)
-      ..setFloat(68, vessel?.fill ?? 0)
-      ..setFloat(69, vessel?.density ?? 0)
-      ..setFloat(70, drift.down.dx)
-      ..setFloat(71, drift.down.dy)
-      ..setFloat(72, liquidUp.dx)
-      ..setFloat(73, liquidUp.dy)
-      ..setFloat(74, slosh.agitation)
-      ..setFloat(75, slosh.foam)
-      ..setFloat(76, isRainedOn ? 1 : 0)
-      ..setFloat(77, pass.index.toDouble())
-      ..setFloat(78, bakedSize.width)
-      ..setFloat(79, bakedSize.height)
+      ..setFloat(57, glow.r)
+      ..setFloat(58, glow.g)
+      ..setFloat(59, glow.b)
+      ..setFloat(60, (flame?.height ?? 0) * drift.rise)
+      ..setFloat(61, vessel?.opacity ?? 0)
+      ..setFloat(62, vessel?.fill ?? 0)
+      ..setFloat(63, vessel?.density ?? 0)
+      ..setFloat(64, drift.down.dx)
+      ..setFloat(65, drift.down.dy)
+      ..setFloat(66, liquidUp.dx)
+      ..setFloat(67, liquidUp.dy)
+      ..setFloat(68, slosh.agitation)
+      ..setFloat(69, slosh.foam)
+      ..setFloat(70, isRainedOn ? 1 : 0)
+      ..setFloat(71, pass.index.toDouble())
+      ..setFloat(72, bakedSize.width)
+      ..setFloat(73, bakedSize.height)
       ..setFloat(
-        80,
+        74,
         flame == null ? 0 : shaped.flammability,
       )
-      ..setFloat(81, flame?.scorchDepth ?? 0)
-      ..setFloat(82, flame?.embers ?? 0)
-      ..setFloat(83, drift.travelled.dx)
-      ..setFloat(84, drift.travelled.dy)
-      ..setFloat(85, _Drawn.bodyOf(vessel))
-      ..setFloat(86, glaze.r)
-      ..setFloat(87, glaze.g)
-      ..setFloat(88, glaze.b)
-      ..setFloat(89, bubbles.travelled.dx)
-      ..setFloat(90, bubbles.travelled.dy)
+      ..setFloat(75, flame?.scorchDepth ?? 0)
+      ..setFloat(76, flame?.embers ?? 0)
+      ..setFloat(77, drift.travelled.dx)
+      ..setFloat(78, drift.travelled.dy)
+      ..setFloat(79, _Drawn.bodyOf(vessel))
+      ..setFloat(80, glaze.r)
+      ..setFloat(81, glaze.g)
+      ..setFloat(82, glaze.b)
+      ..setFloat(83, bubbles.travelled.dx)
+      ..setFloat(84, bubbles.travelled.dy)
       ..setImageSampler(0, isRainedOn ? rain.mapFor(size) : RainMap.dry)
       ..setImageSampler(1, maps ?? RainMap.dry);
+    if (!layered.hasGrowth) return;
+    shader
+      ..setFloat(85, isOverlay ? 0 : decals.moss)
+      ..setFloat(86, isOverlay ? 0 : decals.grass)
+      ..setFloat(87, isOverlay ? 0 : decals.flowers)
+      ..setFloat(88, petal.r)
+      ..setFloat(89, petal.g)
+      ..setFloat(90, petal.b);
   }
 
   /// Sets the shape, colour and light of the body, which both programs

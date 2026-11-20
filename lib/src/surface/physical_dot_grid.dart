@@ -6,8 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'package:kiss_physical/src/light/light_vector.dart';
 import 'package:kiss_physical/src/light/physical_light.dart';
 import 'package:kiss_physical/src/light/sky_light.dart';
-import 'package:kiss_physical/src/shader/physical_shader.dart';
 import 'package:kiss_physical/src/shader/physical_shader_brush.dart';
+import 'package:kiss_physical/src/shader/shader_programs.dart';
 
 /// One dot of a [PhysicalDotGrid].
 @immutable
@@ -73,7 +73,7 @@ class PhysicalDotGrid extends StatefulWidget {
 }
 
 class _PhysicalDotGridState extends State<PhysicalDotGrid> {
-  final _brush = PhysicalShaderBrush(PhysicalShader.dotGrid);
+  final _brush = PhysicalShaderBrush(ShaderPrograms.dotGrid.whenLoaded);
   final _cells = ValueNotifier<ui.Image?>(null);
   int _encoding = 0;
 
@@ -193,7 +193,7 @@ class _DotGridPainter extends CustomPainter {
     required this.brush,
   }) : super(
           repaint: Listenable.merge(
-            [cells, direction, tone, PhysicalShader.dotGrid],
+            [cells, direction, tone, ShaderPrograms.dotGrid.whenLoaded],
           ),
         );
 

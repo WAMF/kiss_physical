@@ -7,8 +7,8 @@ import 'package:flutter/widgets.dart';
 import 'package:kiss_physical/src/light/light_vector.dart';
 import 'package:kiss_physical/src/light/physical_light.dart';
 import 'package:kiss_physical/src/light/sky_light.dart';
-import 'package:kiss_physical/src/shader/physical_shader.dart';
 import 'package:kiss_physical/src/shader/physical_shader_brush.dart';
+import 'package:kiss_physical/src/shader/shader_programs.dart';
 
 /// How a [PhysicalLens] bends and colours what is beneath it.
 @immutable
@@ -127,14 +127,16 @@ class _Lens extends SingleChildRenderObjectWidget {
 }
 
 class _RenderLens extends RenderProxyBox {
-  final _brush = PhysicalShaderBrush(PhysicalShader.lens);
+  final _brush = PhysicalShaderBrush(ShaderPrograms.lens.whenLoaded);
   _Lens? _lens;
   Listenable? _repaint;
 
   void configure(_Lens lens) {
     _lens = lens;
     _listenTo(
-      Listenable.merge([lens.direction, lens.tone, PhysicalShader.lens]),
+      Listenable.merge(
+        [lens.direction, lens.tone, ShaderPrograms.lens.whenLoaded],
+      ),
     );
     markNeedsPaint();
   }

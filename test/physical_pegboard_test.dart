@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiss_physical/kiss_physical.dart';
+import 'package:kiss_physical/src/shader/shader_programs.dart';
 import 'package:kiss_physical/src/surface/physical_pegboard.dart';
 
 void main() {
@@ -156,6 +157,9 @@ void main() {
       tester,
     ) async {
       const panel = Color(0xFF1A1D1C);
+      ShaderProgram.isLoadingAllowed = false;
+      addTearDown(() => ShaderProgram.isLoadingAllowed = true);
+      ShaderPrograms.pegboard.unload();
 
       await tester.pumpWidget(
         const PhysicalPegboard(color: panel, child: SizedBox.expand()),
@@ -197,6 +201,7 @@ void main() {
           ),
         ),
       );
+      await tester.pump();
       final board = tester.renderObject(
         find.descendant(
           of: find.byType(PhysicalPegboard),

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'shader_source.dart';
+
 class _Shaders {
   static const full = 'shaders/physical_surface.frag';
   static const plain = 'shaders/physical_plain.frag';
@@ -29,7 +31,7 @@ class _Shaders {
 }
 
 void main() {
-  final full = File(_Shaders.full).readAsStringSync();
+  final full = ShaderSource.resolved(_Shaders.full);
   final plain = File(_Shaders.plain).readAsStringSync();
 
   test('the plain shader lights with the constants of the full one', () {
