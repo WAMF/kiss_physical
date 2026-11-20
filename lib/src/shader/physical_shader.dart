@@ -51,12 +51,17 @@ abstract final class PhysicalShader {
 class _Program {
   _Program(this.asset);
 
+  /// Where the package's assets are found when it is used by an app.
+  static const _packagePrefix = 'packages/kiss_physical/';
+
   final String asset;
   final program = ValueNotifier<FragmentProgram?>(null);
 
+  /// Loads the program as an app sees it, or failing that as the package
+  /// sees its own assets, which is how its tests find them.
   Future<void> load() async {
     try {
-      program.value = await FragmentProgram.fromAsset(asset);
+      program.value = await _fromEither();
     } on Object catch (error, stackTrace) {
       FlutterError.reportError(
         FlutterErrorDetails(
@@ -65,6 +70,16 @@ class _Program {
           library: 'kiss_physical',
           context: ErrorDescription('while loading $asset'),
         ),
+      );
+    }
+  }
+
+  Future<FragmentProgram> _fromEither() async {
+    try {
+      return await FragmentProgram.fromAsset(asset);
+    } on Object {
+      return FragmentProgram.fromAsset(
+        asset.substring(_packagePrefix.length),
       );
     }
   }
