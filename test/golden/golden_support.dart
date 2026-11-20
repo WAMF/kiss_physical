@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,24 +20,62 @@ abstract final class Sheet {
 }
 
 /// Compares golden images allowing the small differences in rounding that
-/// separate one machine's software renderer from another's.
+/// separate one machine's software renderer from another's: a pixel counts
+/// as changed only when a channel moves by more than a few levels, and a
+/// sheet counts as changed only when more than a sliver of its pixels do.
 class TolerantComparator extends LocalFileComparator {
   TolerantComparator(super.testFile);
 
-  /// The share of pixels that may differ before a sheet counts as changed.
-  static const allowedDifference = 0.005;
+  /// How far a channel may move, out of 255, before its pixel has changed.
+  static const channelTolerance = 10;
+
+  /// The share of pixels that may change before a sheet has changed.
+  static const allowedShare = 0.002;
+
+  static const _bytesPerPixel = 4;
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
-    final result = await GoldenFileComparator.compareLists(
-      imageBytes,
-      await getGoldenBytes(golden),
+    final actual = await _pixelsOf(imageBytes);
+    final expected = await _pixelsOf(
+      Uint8List.fromList(await getGoldenBytes(golden)),
     );
-    if (result.passed || result.diffPercent <= allowedDifference) return true;
-    final error = await generateFailureOutput(result, golden, basedir);
-    throw FlutterError(error);
+    if (actual.length != expected.length) {
+      throw FlutterError('$golden: the sheet has changed size.');
+    }
+    var changed = 0;
+    for (var at = 0; at < actual.length; at += _bytesPerPixel) {
+      if (_differs(actual, expected, at)) changed++;
+    }
+    final share = changed * _bytesPerPixel / actual.length;
+    if (share <= allowedShare) return true;
+    final percent = (share * 100).toStringAsFixed(2);
+    throw FlutterError('$golden: $percent% of pixels have changed.');
+  }
+
+  static bool _differs(Uint8List a, Uint8List b, int at) {
+    for (var channel = 0; channel < _bytesPerPixel; channel++) {
+      if ((a[at + channel] - b[at + channel]).abs() > channelTolerance) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static Future<Uint8List> _pixelsOf(Uint8List png) async {
+    final codec = await ui.instantiateImageCodec(png);
+    final frame = await codec.getNextFrame();
+    final data = await frame.image.toByteData();
+    frame.image.dispose();
+    codec.dispose();
+    return data!.buffer.asUint8List();
   }
 }
+
+/// Whether the golden sheets can be trusted here. They are recorded on
+/// macOS, and other platforms round their noise differently enough to
+/// change the look of a texture.
+bool get rendersLikeTheGoldens => Platform.isMacOS;
 
 /// Uses [TolerantComparator] for the golden files beside [testFile].
 void useTolerantGoldens(String testFile) {
