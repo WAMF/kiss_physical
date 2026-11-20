@@ -62,8 +62,8 @@ void main() {
   const content = SizedBox.square(dimension: 40);
   final components = <String, Widget>{
     'PhysicalCard': const PhysicalCard(child: content),
-    'PhysicalDisc': const PhysicalDisc(child: content),
-    'PhysicalPill': const PhysicalPill(child: content),
+    'PhysicalCard.disc': const PhysicalCard.disc(child: content),
+    'PhysicalCard.pill': const PhysicalCard.pill(child: content),
     'PhysicalPanel': const PhysicalPanel(child: content),
     'PhysicalIconButton':
         PhysicalIconButton(icon: content, diameter: 40, onPressed: () {}),
@@ -81,10 +81,10 @@ void main() {
       });
     }
 
-    testWidgets('PhysicalBottomPanel builds', (tester) async {
+    testWidgets('PhysicalPanel.bottom builds', (tester) async {
       await tester.pumpWidget(
         _plainApp(
-          const PhysicalBottomPanel(
+          const PhysicalPanel.bottom(
             color: _Sample.themeSurface,
             child: content,
           ),

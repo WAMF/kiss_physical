@@ -14,3 +14,9 @@
   otherwise.
 - Pressable surfaces, buttons and the slider take keyboard focus, respond to
   Enter, Space and the arrow keys, and show a focus ring.
+- The surface program is split by substance and compiled on first use;
+  `PhysicalShader.precacheFor` warms the programs for given materials.
+- `PhysicalCard.pill` and `PhysicalCard.disc` replace `PhysicalPill` and
+  `PhysicalDisc`; `PhysicalPanel.bottom` replaces `PhysicalBottomPanel`.
+- `PhysicalLight.fixed` places a light without a listenable.
+- `SkyLight.at` takes its latitude from the app.

@@ -66,9 +66,11 @@ class LightColor {
 /// Where the sun or moon stands at a moment of the day, and what colour its
 /// light has after crossing the atmosphere.
 ///
-/// The position comes from the date, the wall clock and a latitude; no
-/// location or compass is used. East is taken to be the left of the screen,
-/// so morning light arrives from the left and evening light from the right.
+/// The position comes from the date, the wall clock and a latitude the app
+/// supplies; the kit reads no location and no compass. With no compass,
+/// east is taken to be the left of the screen, so morning light arrives
+/// from the left and evening light from the right however the device is
+/// really facing.
 @immutable
 class SkyLight {
   /// Creates a sky from where its light leans, its colours and the height of
@@ -81,7 +83,7 @@ class SkyLight {
 
   /// The sky at [moment], read as local wall-clock time, for an observer at
   /// [latitude] degrees.
-  factory SkyLight.at(DateTime moment, {double latitude = _Site.latitude}) {
+  factory SkyLight.at(DateTime moment, {required double latitude}) {
     final sun = _SolarPosition.at(moment, latitude);
     final daylight = _smoothStep(
       _Twilight.end,

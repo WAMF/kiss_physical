@@ -53,21 +53,21 @@ Widget buildCards(BuildContext context) {
         ),
         SizedBox.square(
           dimension: side,
-          child: PhysicalDisc(
+          child: PhysicalCard.disc(
             color: colors.brand.primary.background,
             child: Center(
               child: Text(
-                'PhysicalDisc',
+                'PhysicalCard.disc',
                 style: TextStyle(color: colors.brand.primary.foreground),
               ),
             ),
           ),
         ),
-        PhysicalPill(
+        PhysicalCard.pill(
           height: layout.actionSizes.large.height,
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Center(widthFactor: 1, child: Text('PhysicalPill')),
+            child: Center(widthFactor: 1, child: Text('PhysicalCard.pill')),
           ),
         ),
       ],

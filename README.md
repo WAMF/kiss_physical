@@ -52,6 +52,18 @@ Future<void> main() async {
 }
 ```
 
+`precache` compiles the programs nearly every app uses. Each texture
+family (wood, metal, plastic, stone, marble), the effects and growth have
+programs of their own, compiled the first time a body needs one; until
+then that body paints flat in its own colour. To avoid that moment for
+materials you show at launch, name them:
+
+```dart
+await PhysicalShader.precacheFor([
+  PhysicalMaterial.satin.withTexture(PhysicalTexture.stainlessSteel),
+]);
+```
+
 `WorldLight` samples the gyroscope and accelerometer at a modest rate, only
 on handheld devices, only while the app is in the foreground, and not at all
 when the user asked for reduced motion. On desktop and web the light rests
@@ -145,19 +157,25 @@ WorldLight(
 )
 ```
 
-`SkyLight.at(DateTime.now())` gives where the sun or moon stands and the
+`SkyLight.at(DateTime.now(), latitude: latitude)` gives where the sun or moon stands and the
 colour of its light: warm and low at dusk, cool and dim by moonlight. Leave
-`sky` out for a white light straight overhead.
+`sky` out for a white light straight overhead. The kit reads no location:
+pass your own latitude, or `SkyLight.latitudeForCountry` for a typical one
+in the right hemisphere.
 
-To place the light yourself, in a storybook or a screenshot test, use a
-`PhysicalLight` in place of `WorldLight`:
+To place the light yourself, in a storybook or a screenshot test, use
+`PhysicalLight.fixed` in place of `WorldLight`:
 
 ```dart
-PhysicalLight(
-  direction: const AlwaysStoppedAnimation(Offset(-0.25, -0.45)),
+PhysicalLight.fixed(
+  direction: const Offset(-0.25, -0.45),
   child: child,
 )
 ```
+
+The direction is the screen-plane part of the unit vector pointing at the
+light: `Offset.zero` is straight above the screen, negative y is beyond its
+top edge and negative x beyond its left edge.
 
 ## Depth layers
 
@@ -191,8 +209,8 @@ two shift in opposite directions.
 | `PhysicalIconButton` | A round bead carrying an icon, with a tooltip and a label for screen readers |
 | `PhysicalSlider` | A bead on a recessed track |
 | `PhysicalProgressBar` | A glossy bar filling a recessed track |
-| `PhysicalCard`, `PhysicalDisc`, `PhysicalPill` | Clipping card shapes |
-| `PhysicalPanel`, `PhysicalBottomPanel` | Panels, flat or raised |
+| `PhysicalCard`, `PhysicalCard.pill`, `PhysicalCard.disc` | A body that clips its content: slab, pill or disc |
+| `PhysicalPanel`, `PhysicalPanel.bottom` | A panel, flat or raised, free-standing or docked to the bottom edge |
 | `PhysicalDotGrid` | Hundreds of beads and sockets in one shader pass |
 
 ```dart
