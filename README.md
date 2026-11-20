@@ -279,6 +279,20 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
+## Testing your app
+
+Widgets from the kit need no set-up in widget tests: with no light and no
+compiled programs, bodies paint flat in their own colour. To have them
+shaded, for golden images say, compile the programs first:
+
+```dart
+await tester.runAsync(PhysicalShader.precacheAll);
+```
+
+The kit's own golden images are recorded on macOS. Other platforms round
+the noise behind textures differently, so expect to record yours on the
+platform that checks them.
+
 ## Performance notes
 
 - Give long lists of small lit shapes to one `PhysicalDotGrid` rather than
@@ -287,3 +301,5 @@ flutter run
   face, such as a photograph, so only the shadow is drawn.
 - Animated materials (rain, flame, liquid) repaint every frame while on
   screen; plain ones rest until the light moves.
+- A body only makes what it shows: a plain card carries no rain, liquid or
+  flame machinery, and no baked layers.

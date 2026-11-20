@@ -104,6 +104,7 @@ class ShaderProgram {
   final String _asset;
   final _program = ValueNotifier<FragmentProgram?>(null);
   Future<void>? _loading;
+  Zone? _loadingZone;
   int _attempt = 0;
 
   /// Notifies when the program becomes available, and starts compiling it
@@ -119,9 +120,18 @@ class ShaderProgram {
   static bool isLoadingAllowed = true;
 
   /// Compiles the program once.
+  ///
+  /// A compile begun in another zone is not waited on: a widget test's fake
+  /// clock can leave one that never finishes, and waiting on it would hang
+  /// whatever asked next.
   Future<void> load() {
-    if (!isLoadingAllowed) return Future.value();
-    return _loading ??= _load(_attempt);
+    if (!isLoadingAllowed || _program.value != null) return Future.value();
+    final pending = _loading;
+    if (pending != null && identical(_loadingZone, Zone.current)) {
+      return pending;
+    }
+    _loadingZone = Zone.current;
+    return _loading = _load(_attempt);
   }
 
   /// Forgets the program, as if nothing had asked for it yet.
