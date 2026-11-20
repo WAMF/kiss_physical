@@ -10,16 +10,22 @@ class _Painted {
   final ResizeSnapshot snapshot;
   int directDraws = 0;
 
+  /// How often the surface was drawn straight onto the canvas it was given,
+  /// with no picture standing in for it.
+  int drawsOntoCanvas = 0;
+
   void at(Size size, {Object look = 'plain'}) {
     final recorder = ui.PictureRecorder();
+    final given = Canvas(recorder);
     snapshot.paint(
-      Canvas(recorder),
+      given,
       size: size,
       area: (Offset.zero & size).inflate(4),
       pixelRatio: 2,
       look: look,
       draw: (canvas) {
         directDraws++;
+        if (identical(canvas, given)) drawsOntoCanvas++;
         canvas.drawRect(Offset.zero & size, Paint());
       },
     );
@@ -83,6 +89,21 @@ void main() {
 
     expect(painted.directDraws, 4);
     await tester.pump();
+  });
+
+  testWidgets('never stands a picture in for a bar growing by small steps', (
+    tester,
+  ) async {
+    final painted = _Painted(ResizeSnapshot());
+    addTearDown(painted.snapshot.dispose);
+
+    painted
+      ..at(const Size(300, 12))
+      ..at(const Size(301, 12))
+      ..at(const Size(302, 12))
+      ..at(const Size(303, 12));
+
+    expect(painted.drawsOntoCanvas, 4);
   });
 
   testWidgets('never shows a picture of another look', (tester) async {
