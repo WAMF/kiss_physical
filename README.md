@@ -219,7 +219,7 @@ two shift in opposite directions.
 | `PhysicalPillButton` | A Material button drawn as a glossy pill |
 | `physicalButtonStyle` | The same look for any `FilledButton`, `TextButton` or `ElevatedButton`, as a `ButtonStyle` or theme |
 | `PhysicalIconButton` | A round bead carrying an icon, with a tooltip and a label for screen readers |
-| `PhysicalSlider` | A bead on a recessed track |
+| `PhysicalSlider` | A progress bar with a bead to drag along it |
 | `PhysicalProgressBar` | A glossy bar filling a recessed track |
 | `PhysicalCard`, `PhysicalCard.pill`, `PhysicalCard.disc` | A body that clips its content: slab, pill or disc |
 | `PhysicalPanel`, `PhysicalPanel.bottom` | A panel, flat or raised, free-standing or docked to the bottom edge |
@@ -244,6 +244,29 @@ PhysicalIconButton(
 ```
 
 Every component takes its content as `child` and its colour as `color`.
+
+A component keeps its own colour whatever it is made of: its texture is
+tinted to that colour, and the grain, veins or flecks stay as dark against
+it as they naturally are. The slider and the progress bar take a material
+for each part.
+
+```dart
+PhysicalSlider(
+  value: volume,
+  onChanged: setVolume,
+  semanticLabel: 'Volume',
+  barColor: accent,
+  trackColor: slate,
+  thumbColor: Colors.white,
+  thumbMaterial: PhysicalMaterial.bead.withTexture(PhysicalTexture.brass),
+  trackMaterial: PhysicalMaterial.well.withTexture(PhysicalTexture.oak),
+)
+```
+
+A texture is pinned to the centre of its body. On a body that grows from
+one side, pin it there with `PhysicalSurface.textureAlignment` and the
+grain stays put while more of it is uncovered, as it does on the bar of a
+progress bar.
 Buttons take `onPressed`; `PhysicalPressable`, a surface that can be tapped,
 takes `onTap`. A button or slider with no callback is frosted over and
 inert.
