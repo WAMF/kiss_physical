@@ -234,7 +234,9 @@ void main() {
     (tester) async {
       await expectSheet(tester, 'backgrounds', [
         const PhysicalPegboard(
-            color: Sheet.background, child: SizedBox.expand()),
+          color: Sheet.background,
+          child: SizedBox.expand(),
+        ),
         const PhysicalPegboard(
           color: Sheet.body,
           grid: PegboardGrid(pitch: 24),
