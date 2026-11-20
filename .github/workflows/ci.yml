@@ -7,7 +7,7 @@ on:
 
 env:
   SUPPORTED_FLUTTER: 3.44.4
-  OLDEST_FLUTTER: 3.27.4
+  OLDEST_FLUTTER: 3.41.x
 
 jobs:
   check:
