@@ -9,7 +9,7 @@ turns beneath it.
 pointer, or drag a finger, to carry the light. In an installed app the light
 follows the tilt of the device instead.
 
-![Showpiece materials: a mossy wall in the rain, a burning log, weathered copper and an overgrown ruin](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/showpieces.jpg)
+![Showpiece materials: a mossy wall, a burning log, weathered copper, an overgrown ruin, a neon tube and a vessel of liquid](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/showpieces.jpg)
 
 - **One light.** A `WorldLight` at the root follows the device's tilt and,
   optionally, the sun and moon through the day. Every surface below reads it.

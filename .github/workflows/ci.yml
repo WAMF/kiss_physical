@@ -84,3 +84,4 @@ jobs:
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze
       - run: flutter build web
+      - run: flutter build web -t lib/minimal.dart
