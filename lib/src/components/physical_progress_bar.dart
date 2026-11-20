@@ -6,6 +6,10 @@ class _Bar {
   static const height = 12.0;
   static const percent = 100;
   static const fillCurve = Curves.easeOut;
+
+  /// The crown of the filled part. A crown domes a body from end to end,
+  /// so on a bar that grows its shading would slide along with the length.
+  static const crown = 0.0;
 }
 
 /// A glossy bar filling a recessed track in proportion to [fraction].
@@ -44,7 +48,9 @@ class PhysicalProgressBar extends StatelessWidget {
   final double height;
 
   /// How the filled part is shaped and catches the light. A texture on it
-  /// is tinted to [barColor].
+  /// is tinted to [barColor] and stays where it is as the bar grows over
+  /// it. Its crown is not used: the bar is rounded by its bevel alone, so
+  /// that its shading holds still too.
   final PhysicalMaterial barMaterial;
 
   /// How the recessed track is shaped and catches the light. A texture on
@@ -71,7 +77,7 @@ class PhysicalProgressBar extends StatelessWidget {
         height: height,
         barColor: barColor,
         trackColor: trackColor,
-        barMaterial: barMaterial.tintedTo(barColor),
+        barMaterial: barMaterial.tintedTo(barColor).copyWith(crown: _Bar.crown),
         trackMaterial: trackMaterial.tintedTo(trackColor),
         fillDuration: fillDuration,
       ),

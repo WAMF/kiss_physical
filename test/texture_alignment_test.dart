@@ -23,10 +23,66 @@ class _Fixture {
   static const sameGrain = 2.0;
 }
 
+class _Bar {
+  static const width = 300.0;
+  static const lessFull = 0.4;
+  static const fuller = 0.7;
+  static const barColor = Color(0xFFD71921);
+  static const trackColor = Color(0xFF3B393E);
+
+  /// A strip of the bar inside its shorter length and clear of its ends.
+  static const strip = Rect.fromLTRB(10, 3, 100, 9);
+
+  /// The mean difference per channel, out of 255, that rounding alone can
+  /// account for.
+  static const sameLook = 0.5;
+}
+
+Future<Uint8List> _filledStripOf(
+  WidgetTester tester, {
+  required double fraction,
+}) {
+  return _capture(
+    tester,
+    strip: _Bar.strip,
+    child: SizedBox(
+      width: _Bar.width,
+      child: PhysicalProgressBar(
+        fraction: fraction,
+        barColor: _Bar.barColor,
+        trackColor: _Bar.trackColor,
+        barMaterial: PhysicalMaterial.gloss.withTexture(PhysicalTexture.oak),
+        fillDuration: Duration.zero,
+      ),
+    ),
+  );
+}
+
 Future<Uint8List> _stripOf(
   WidgetTester tester, {
   required double width,
   required AlignmentGeometry pinnedTo,
+}) {
+  return _capture(
+    tester,
+    strip: _Fixture.strip,
+    child: SizedBox(
+      width: width,
+      height: _Fixture.height,
+      child: PhysicalSurface(
+        color: _Fixture.color,
+        material: _Fixture.material,
+        textureAlignment: pinnedTo,
+        child: const SizedBox.expand(),
+      ),
+    ),
+  );
+}
+
+Future<Uint8List> _capture(
+  WidgetTester tester, {
+  required Rect strip,
+  required Widget child,
 }) async {
   final boundary = GlobalKey();
   await tester.pumpWidget(
@@ -34,19 +90,7 @@ Future<Uint8List> _stripOf(
       textDirection: TextDirection.ltr,
       child: Align(
         alignment: Alignment.topLeft,
-        child: RepaintBoundary(
-          key: boundary,
-          child: SizedBox(
-            width: width,
-            height: _Fixture.height,
-            child: PhysicalSurface(
-              color: _Fixture.color,
-              material: _Fixture.material,
-              textureAlignment: pinnedTo,
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
+        child: RepaintBoundary(key: boundary, child: child),
       ),
     ),
   );
@@ -58,13 +102,12 @@ Future<Uint8List> _stripOf(
     final data = await image.toByteData();
     final rowBytes = image.width * _Fixture.bytesPerPixel;
     image.dispose();
-    return _cut(data!.buffer.asUint8List(), rowBytes);
+    return _cut(data!.buffer.asUint8List(), rowBytes, strip);
   });
   return pixels!;
 }
 
-Uint8List _cut(Uint8List pixels, int rowBytes) {
-  const strip = _Fixture.strip;
+Uint8List _cut(Uint8List pixels, int rowBytes, Rect strip) {
   final cut = BytesBuilder();
   for (var y = strip.top.toInt(); y < strip.bottom.toInt(); y++) {
     final row = y * rowBytes;
@@ -123,6 +166,17 @@ void main() {
     );
 
     expect(_meanDifference(short, long), greaterThan(_Fixture.sameGrain));
+  });
+
+  testWidgets('a bar looks the same where it is already filled as it grows', (
+    tester,
+  ) async {
+    await tester.runAsync(PhysicalShader.precacheAll);
+
+    final lessFull = await _filledStripOf(tester, fraction: _Bar.lessFull);
+    final fuller = await _filledStripOf(tester, fraction: _Bar.fuller);
+
+    expect(_meanDifference(lessFull, fuller), lessThan(_Bar.sameLook));
   });
 
   testWidgets('the bar of a progress bar is pinned to its start', (
