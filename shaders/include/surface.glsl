@@ -118,6 +118,10 @@ const float PI = 3.14159265;
 const float AMBIENT = 0.38;
 const float DIELECTRIC_F0 = 0.04;
 const float MAX_BEVEL_SLOPE = 0.96;
+// The finish roughness at and below which a body is fully coated, and at
+// and above which what it is made of is left bare.
+const float COATED_BELOW = 0.3;
+const float BARE_ABOVE = 0.8;
 const float RIM_STRENGTH = 0.55;
 const float SHADOW_STRENGTH = 0.45;
 const float OVERLAY_SHADE = 0.55;
@@ -1285,7 +1289,12 @@ void main() {
     vec4 grain = sampleTexture(uTexture.x, q);
     normal = normalize(normal + vec3(grain.xy * strength, 0.0));
     surfaceColor = mix(surfaceColor, uSecondColor, grain.z * strength);
-    roughness = clamp(roughness + grain.w * strength, 0.08, 1.0);
+    // A finish lies over what the body is made of. Polish or lacquer hides
+    // how rough the substance is in itself, and a matte finish leaves it
+    // bare; a substance smoother than its finish shows through either.
+    float bare = smoothstep(COATED_BELOW, BARE_ABOVE, roughness);
+    float coarser = max(grain.w, 0.0) * bare + min(grain.w, 0.0);
+    roughness = clamp(roughness + coarser * strength, 0.08, 1.0);
     finishRoughness = roughness;
     if (layered && uTexture.x > TEXTURE_STONE - 0.5 &&
         uTexture.x < TEXTURE_STONE + 0.5) {

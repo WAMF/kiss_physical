@@ -16,18 +16,47 @@ Widget buildPhysicalSurfaceGallery(BuildContext context) {
       min: 0.1,
       max: 1,
     ),
+    texture: context.knobs.object.dropdown<PhysicalTexture>(
+      label: 'Made of',
+      options: _Substances.all.values.toList(),
+      labelBuilder: _Substances.nameOf,
+    ),
   );
+}
+
+class _Substances {
+  static const all = {
+    'plain': PhysicalTexture.none,
+    'oak': PhysicalTexture.oak,
+    'walnut': PhysicalTexture.walnut,
+    'stainless steel': PhysicalTexture.stainlessSteel,
+    'brass': PhysicalTexture.brass,
+    'granite': PhysicalTexture.granite,
+    'carrara': PhysicalTexture.carrara,
+    'plastic': PhysicalTexture.plastic,
+  };
+
+  static String nameOf(PhysicalTexture texture) {
+    return all.entries.firstWhere((entry) => entry.value == texture).key;
+  }
 }
 
 /// Showcases the physical materials. Drag or hover to steer the light the
 /// way turning a handset under a ceiling light would.
+///
+/// Every body is made of [texture], so the same shapes and finishes can be
+/// compared from one substance to the next.
 class PhysicalGallery extends StatefulWidget {
   const PhysicalGallery({
     this.roughness = 0.28,
+    this.texture = PhysicalTexture.none,
     super.key,
   });
 
   final double roughness;
+
+  /// What every body in the gallery is made of.
+  final PhysicalTexture texture;
 
   @override
   State<PhysicalGallery> createState() => _PhysicalGalleryState();
@@ -59,7 +88,14 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
 
   @override
   Widget build(BuildContext context) {
-    final gloss = PhysicalMaterial.gloss.copyWith(roughness: widget.roughness);
+    final texture = widget.texture;
+    final gloss = PhysicalMaterial.gloss
+        .copyWith(roughness: widget.roughness)
+        .withTexture(texture);
+    final satin = PhysicalMaterial.satin.withTexture(texture);
+    final bead = PhysicalMaterial.bead.withTexture(texture);
+    final socket = PhysicalMaterial.socket.withTexture(texture);
+    final well = PhysicalMaterial.well.withTexture(texture);
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
@@ -77,6 +113,7 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                     height: 130,
                     child: PhysicalSurface(
                       color: _Palette.panel,
+                      material: satin,
                       borderRadius: BorderRadius.circular(20),
                       child: const _Label('OUTPUT', '143%'),
                     ),
@@ -90,6 +127,7 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                         Expanded(
                           child: PhysicalSurface(
                             color: _Palette.light,
+                            material: satin,
                             borderRadius: BorderRadius.circular(20),
                             child: const _Label(
                               'Charge',
@@ -98,13 +136,13 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                             ),
                           ),
                         ),
-                        const AspectRatio(
+                        AspectRatio(
                           aspectRatio: 1,
                           child: PhysicalSurface(
                             color: _Palette.brand,
-                            material: PhysicalMaterial.bead,
+                            material: bead,
                             borderRadius: PhysicalSurface.stadium,
-                            child: Center(child: _Label('Level', '6')),
+                            child: const Center(child: _Label('Level', '6')),
                           ),
                         ),
                       ],
@@ -117,20 +155,20 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                       PhysicalPressable(
                         onTap: () => setState(() => _isSelected = !_isSelected),
                         color: _isSelected ? _Palette.brand : _Palette.panel,
-                        material: _isSelected ? gloss : PhysicalMaterial.socket,
+                        material: _isSelected ? gloss : socket,
                         child: const _PillText('Morning'),
                       ),
-                      const PhysicalSurface(
+                      PhysicalSurface(
                         color: _Palette.panel,
-                        material: PhysicalMaterial.socket,
+                        material: socket,
                         borderRadius: PhysicalSurface.stadium,
-                        child: _PillText('Noon'),
+                        child: const _PillText('Noon'),
                       ),
-                      const PhysicalSurface(
+                      PhysicalSurface(
                         color: _Palette.panel,
-                        material: PhysicalMaterial.socket,
+                        material: socket,
                         borderRadius: PhysicalSurface.stadium,
-                        child: _PillText('Evening'),
+                        child: const _PillText('Evening'),
                       ),
                     ],
                   ),
@@ -182,8 +220,7 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                           child: PhysicalSurface(
                             color: _Palette.panel,
                             borderRadius: PhysicalSurface.stadium,
-                            material: PhysicalMaterial.satin
-                                .copyWith(bevel: 10, elevation: 6),
+                            material: satin.copyWith(bevel: 10, elevation: 6),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -200,7 +237,7 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                         child: PhysicalPressable(
                           onTap: () {},
                           color: Colors.white,
-                          material: PhysicalMaterial.bead,
+                          material: bead,
                           child: const Icon(Icons.add, color: Colors.black),
                         ),
                       ),
@@ -211,7 +248,7 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                     height: 64,
                     child: PhysicalSurface(
                       color: _Palette.background,
-                      material: PhysicalMaterial.well,
+                      material: well,
                       borderRadius: BorderRadius.circular(16),
                       child: const Align(
                         alignment: Alignment.centerLeft,
@@ -225,7 +262,7 @@ class _PhysicalGalleryState extends State<PhysicalGallery> {
                     child: PhysicalSurface(
                       color: Colors.white,
                       borderRadius: PhysicalSurface.stadium,
-                      material: PhysicalMaterial.gloss.copyWith(bevel: 8),
+                      material: gloss.copyWith(bevel: 8),
                       child: const Padding(
                         padding: EdgeInsets.all(8),
                         child: PhysicalGlass(

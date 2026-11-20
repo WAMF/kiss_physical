@@ -47,6 +47,29 @@ void main() {
   );
 
   testWidgets(
+    'finishes over substances',
+    (tester) async {
+      const finishes = [
+        PhysicalMaterial.gloss,
+        PhysicalMaterial.bead,
+        PhysicalMaterial.matte,
+        PhysicalMaterial.well,
+      ];
+      const substances = [
+        PhysicalTexture.none,
+        PhysicalTexture.oak,
+        PhysicalTexture.granite,
+        PhysicalTexture.stainlessSteel,
+      ];
+      await expectSheet(tester, 'finishes_over_substances', [
+        for (final substance in substances)
+          for (final finish in finishes) slab(finish.withTexture(substance)),
+      ]);
+    },
+    skip: !rendersLikeTheGoldens,
+  );
+
+  testWidgets(
     'stones',
     (tester) async {
       await expectSheet(tester, 'stones', [

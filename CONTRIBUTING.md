@@ -39,6 +39,12 @@ the difference before committing it:
 flutter test --update-goldens test/golden
 ```
 
+`flutter test` does not notice a change to `shaders/include/surface.glsl`
+and goes on using the programs it compiled before. Delete `build` and
+`.dart_tool/flutter_build` before running the tests after editing it, or
+the sheets are compared against the old shader.
+
+
 If a change is not meant to alter the look, the sheets must still pass
 untouched.
 
