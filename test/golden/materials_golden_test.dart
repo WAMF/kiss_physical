@@ -269,11 +269,14 @@ void main() {
         );
       }
 
-      const latitude = 42.0;
-      final dusk =
-          SkyLight.at(DateTime(2026, 6, 21, 20, 30), latitude: latitude).tone;
-      final night =
-          SkyLight.at(DateTime(2026, 6, 21, 23), latitude: latitude).tone;
+      const dusk = LightTone(
+        key: LightColor(1, 0.62, 0.34),
+        fill: LightColor(0.45, 0.5, 0.75),
+      );
+      const night = LightTone(
+        key: LightColor(0.32, 0.38, 0.55),
+        fill: LightColor(0.12, 0.15, 0.26),
+      );
       await expectSheet(tester, 'light_and_tone', [
         lit(Offset.zero, LightTone.neutral),
         lit(const Offset(0.8, 0), LightTone.neutral),
