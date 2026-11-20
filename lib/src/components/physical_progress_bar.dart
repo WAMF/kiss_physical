@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
-import 'package:kiss_physical/src/material/physical_texture.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
 class _Bar {
   static const height = 12.0;
   static const percent = 100;
-  static const fillDuration = Duration(milliseconds: 250);
   static const fillCurve = Curves.easeOut;
 }
 
@@ -21,10 +19,16 @@ class PhysicalProgressBar extends StatelessWidget {
     required this.barColor,
     required this.trackColor,
     this.height = _Bar.height,
-    this.texture = PhysicalTexture.none,
+    this.barMaterial = PhysicalMaterial.gloss,
+    this.trackMaterial = PhysicalMaterial.well,
+    this.fillDuration = defaultFillDuration,
     this.semanticLabel,
     super.key,
   });
+
+  /// How long the fill takes to glide to a new [fraction] unless another
+  /// is given.
+  static const defaultFillDuration = Duration(milliseconds: 250);
 
   /// How much of the track is filled, from 0 to 1. Values outside that range
   /// are clamped.
@@ -39,9 +43,18 @@ class PhysicalProgressBar extends StatelessWidget {
   /// The thickness of the track in logical pixels.
   final double height;
 
-  /// What the track is made of, plain unless a texture is given. The bar
-  /// stays plain in its own colour, so how full it is still shows.
-  final PhysicalTexture texture;
+  /// How the filled part is shaped and catches the light. A texture on it
+  /// is tinted to [barColor].
+  final PhysicalMaterial barMaterial;
+
+  /// How the recessed track is shaped and catches the light. A texture on
+  /// it is tinted to [trackColor].
+  final PhysicalMaterial trackMaterial;
+
+  /// How long the fill takes to glide to a new [fraction]. At
+  /// [Duration.zero] it follows the fraction at once, as it must under
+  /// something dragged along it.
+  final Duration fillDuration;
 
   /// What the bar is called by screen readers, which also hear how full it
   /// is as a percentage.
@@ -58,7 +71,9 @@ class PhysicalProgressBar extends StatelessWidget {
         height: height,
         barColor: barColor,
         trackColor: trackColor,
-        texture: texture,
+        barMaterial: barMaterial.tintedTo(barColor),
+        trackMaterial: trackMaterial.tintedTo(trackColor),
+        fillDuration: fillDuration,
       ),
     );
   }
@@ -71,14 +86,18 @@ class _Track extends StatelessWidget {
     required this.height,
     required this.barColor,
     required this.trackColor,
-    required this.texture,
+    required this.barMaterial,
+    required this.trackMaterial,
+    required this.fillDuration,
   });
 
   final double filled;
   final double height;
   final Color barColor;
   final Color trackColor;
-  final PhysicalTexture texture;
+  final PhysicalMaterial barMaterial;
+  final PhysicalMaterial trackMaterial;
+  final Duration fillDuration;
 
   @override
   Widget build(BuildContext context) {
@@ -86,20 +105,19 @@ class _Track extends StatelessWidget {
       height: height,
       child: PhysicalSurface(
         color: trackColor,
-        material: PhysicalMaterial.well.withTexture(texture),
+        material: trackMaterial,
         borderRadius: PhysicalSurface.stadium,
         child: TweenAnimationBuilder<double>(
           tween: Tween(end: filled),
-          duration: _Bar.fillDuration,
+          duration: fillDuration,
           curve: _Bar.fillCurve,
-          builder: (context, filled, fill) => FractionallySizedBox(
+          builder: (context, filled, fill) => Align(
             alignment: AlignmentDirectional.centerStart,
-            widthFactor: filled,
-            child: fill,
+            child: FractionallySizedBox(widthFactor: filled, child: fill),
           ),
           child: PhysicalSurface(
             color: barColor,
-            material: PhysicalMaterial.gloss,
+            material: barMaterial,
             borderRadius: PhysicalSurface.stadium,
             child: const SizedBox.expand(),
           ),

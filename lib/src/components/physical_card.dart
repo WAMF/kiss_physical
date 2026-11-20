@@ -51,7 +51,8 @@ class PhysicalCard extends StatelessWidget {
   /// the nearest `Layout`, or of the standard layout, on every corner.
   final BorderRadius? borderRadius;
 
-  /// How the card is shaped and how it catches the light.
+  /// How the card is shaped and how it catches the light. A texture on it
+  /// is tinted to the card's colour.
   final PhysicalMaterial material;
 
   /// A fixed width, or null to take the width of [child].
@@ -62,12 +63,13 @@ class PhysicalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shown = color ?? PhysicalDefaults.surfaceColor(context);
     return SizedBox(
       width: width,
       height: height,
       child: PhysicalSurface(
-        color: color ?? PhysicalDefaults.surfaceColor(context),
-        material: material,
+        color: shown,
+        material: material.tintedTo(shown),
         borderRadius: borderRadius ??
             BorderRadius.circular(PhysicalDefaults.cornerRadius(context)),
         clipBehavior: Clip.hardEdge,

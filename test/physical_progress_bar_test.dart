@@ -48,6 +48,36 @@ void main() {
     expect(_fillWidth(tester), _Fixture.trackWidth);
   });
 
+  testWidgets('the track spans the width it is offered, however full', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: _Fixture.trackWidth,
+            child: Column(
+              children: [
+                PhysicalProgressBar(
+                  fraction: _Fixture.half,
+                  barColor: Colors.red,
+                  trackColor: Colors.grey,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(PhysicalSurface).first).width,
+      _Fixture.trackWidth,
+    );
+    expect(_fillWidth(tester), _Fixture.trackWidth * _Fixture.half);
+  });
+
   testWidgets('never overflows the track', (tester) async {
     await tester.pumpWidget(_bar(_Fixture.beyondFull));
 

@@ -157,7 +157,9 @@ Widget buildSlider(BuildContext context) {
     child: _SliderDemo(
       divisions: snaps ? _Sample.sliderSteps : null,
       isEnabled: enabled,
-      texture: SubstanceKnob.of(context),
+      bead: SubstanceKnob.of(context, part: 'Bead'),
+      bar: SubstanceKnob.of(context, part: 'Bar'),
+      track: SubstanceKnob.of(context, part: 'Track'),
     ),
   );
 }
@@ -166,12 +168,16 @@ class _SliderDemo extends StatefulWidget {
   const _SliderDemo({
     required this.divisions,
     required this.isEnabled,
-    required this.texture,
+    required this.bead,
+    required this.bar,
+    required this.track,
   });
 
   final int? divisions;
   final bool isEnabled;
-  final PhysicalTexture texture;
+  final PhysicalTexture bead;
+  final PhysicalTexture bar;
+  final PhysicalTexture track;
 
   @override
   State<_SliderDemo> createState() => _SliderDemoState();
@@ -193,7 +199,9 @@ class _SliderDemoState extends State<_SliderDemo> {
       barColor: colors.brand.primary.background,
       trackColor: foreground.withValues(alpha: _Sample.trackOpacity),
       thumbColor: foreground,
-      texture: widget.texture,
+      thumbMaterial: PhysicalMaterial.bead.withTexture(widget.bead),
+      barMaterial: PhysicalMaterial.gloss.withTexture(widget.bar),
+      trackMaterial: PhysicalMaterial.well.withTexture(widget.track),
     );
   }
 }
@@ -214,7 +222,10 @@ Widget buildProgressBar(BuildContext context) {
       ),
       barColor: colors.brand.primary.background,
       trackColor: colors.secondary.background,
-      texture: SubstanceKnob.of(context),
+      barMaterial: PhysicalMaterial.gloss
+          .withTexture(SubstanceKnob.of(context, part: 'Bar')),
+      trackMaterial: PhysicalMaterial.well
+          .withTexture(SubstanceKnob.of(context, part: 'Track')),
     ),
   );
 }

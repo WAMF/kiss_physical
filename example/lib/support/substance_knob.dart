@@ -6,6 +6,7 @@ import 'package:widgetbook/widgetbook.dart';
 /// and finishes can be compared from one substance to the next.
 abstract final class SubstanceKnob {
   static const _label = 'Made of';
+  static const _madeOf = 'made of';
 
   static const _substances = {
     'plain': PhysicalTexture.none,
@@ -19,10 +20,11 @@ abstract final class SubstanceKnob {
   };
 
   /// The substance chosen in the knobs of the use case being built in
-  /// [context], plain to begin with.
-  static PhysicalTexture of(BuildContext context) {
+  /// [context], plain to begin with. [part] names the part it is for when
+  /// a use case has a knob for each of several.
+  static PhysicalTexture of(BuildContext context, {String? part}) {
     return context.knobs.object.dropdown<PhysicalTexture>(
-      label: _label,
+      label: part == null ? _label : '$part $_madeOf',
       options: _substances.values.toList(),
       labelBuilder: _nameOf,
     );

@@ -42,7 +42,8 @@ class PhysicalPanel extends StatelessWidget {
   /// Whether the panel floats above its parent and casts a shadow.
   final bool isRaised;
 
-  /// What the panel is made of, plain unless a texture is given.
+  /// What the panel is made of, plain unless a texture is given. It is
+  /// tinted to the panel's colour.
   final PhysicalTexture texture;
 
   final bool _isDocked;
@@ -56,11 +57,12 @@ class PhysicalPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shown = color ?? PhysicalDefaults.surfaceColor(context);
+    final finish =
+        isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel;
     return PhysicalSurface(
-      color: color ?? PhysicalDefaults.surfaceColor(context),
-      material:
-          (isRaised ? PhysicalMaterial.floatingPanel : PhysicalMaterial.panel)
-              .withTexture(texture),
+      color: shown,
+      material: finish.withTexture(texture).tintedTo(shown),
       borderRadius: _radiusIn(context),
       clipBehavior: _isDocked ? Clip.hardEdge : Clip.none,
       child: _isDocked

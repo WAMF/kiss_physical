@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:kiss_physical/src/components/physical_progress_bar.dart';
 import 'package:kiss_physical/src/material/disabled_look.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
-import 'package:kiss_physical/src/material/physical_texture.dart';
 import 'package:kiss_physical/src/surface/focus_ring.dart';
 import 'package:kiss_physical/src/surface/physical_surface.dart';
 
@@ -13,6 +13,10 @@ class _Slider {
 
 /// A bead that slides along a recessed track to pick a value between [min]
 /// and [max], leaving a glossy bar behind it.
+///
+/// The track and bar are a `PhysicalProgressBar` filled up to the bead, so
+/// the two controls look alike. Each part takes a colour and a material of
+/// its own.
 ///
 /// Dragging anywhere along the track, or tapping it, moves the bead there.
 /// With keyboard focus the arrow keys move it a step. With no [onChanged]
@@ -31,7 +35,9 @@ class PhysicalSlider extends StatefulWidget {
     this.divisions,
     this.thumbDiameter = defaultThumbDiameter,
     this.trackHeight = defaultTrackHeight,
-    this.texture = PhysicalTexture.none,
+    this.barMaterial = PhysicalMaterial.gloss,
+    this.trackMaterial = PhysicalMaterial.well,
+    this.thumbMaterial = PhysicalMaterial.bead,
     this.semanticLabel,
     this.focusNode,
     super.key,
@@ -82,9 +88,17 @@ class PhysicalSlider extends StatefulWidget {
   /// The thickness of the track in logical pixels.
   final double trackHeight;
 
-  /// What the bead and the track are made of, plain unless a texture is
-  /// given. The bar stays plain in its own colour, so the value still shows.
-  final PhysicalTexture texture;
+  /// How the bar left behind the bead is shaped and catches the light. A
+  /// texture on it is tinted to [barColor].
+  final PhysicalMaterial barMaterial;
+
+  /// How the recessed track is shaped and catches the light. A texture on
+  /// it is tinted to [trackColor].
+  final PhysicalMaterial trackMaterial;
+
+  /// How the bead is shaped and catches the light. A texture on it is
+  /// tinted to [thumbColor].
+  final PhysicalMaterial thumbMaterial;
 
   /// What the slider is called by screen readers.
   final String? semanticLabel;
@@ -199,21 +213,28 @@ class _PhysicalSliderState extends State<PhysicalSlider> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    _Track(
-                      height: widget.trackHeight,
-                      filledWidth:
-                          widget.thumbDiameter / 2 + _fraction * travel,
-                      barColor: _shown(widget.barColor),
-                      trackColor: widget.trackColor,
-                      trackMaterial: _made(PhysicalMaterial.well),
-                      barMaterial: _shownMaterial(PhysicalMaterial.gloss),
+                    ExcludeSemantics(
+                      child: PhysicalProgressBar(
+                        fraction:
+                            (widget.thumbDiameter / 2 + _fraction * travel) /
+                                constraints.maxWidth,
+                        height: widget.trackHeight,
+                        barColor: _shown(widget.barColor),
+                        trackColor: widget.trackColor,
+                        barMaterial: _shownMaterial(widget.barMaterial),
+                        trackMaterial: widget.trackMaterial,
+                        fillDuration: Duration.zero,
+                      ),
                     ),
                     Align(
                       alignment: AlignmentDirectional(_fraction * 2 - 1, 0),
                       child: _Thumb(
                         diameter: widget.thumbDiameter,
                         color: _shown(widget.thumbColor),
-                        material: _shownMaterial(_made(PhysicalMaterial.bead)),
+                        material: _shownMaterial(
+                          widget.thumbMaterial
+                              .tintedTo(_shown(widget.thumbColor)),
+                        ),
                         showsFocus: _showsFocus,
                       ),
                     ),
@@ -231,10 +252,6 @@ class _PhysicalSliderState extends State<PhysicalSlider> {
     return _isEnabled ? color : DisabledLook.frosted(color);
   }
 
-  PhysicalMaterial _made(PhysicalMaterial finish) {
-    return finish.withTexture(widget.texture);
-  }
-
   PhysicalMaterial _shownMaterial(PhysicalMaterial material) {
     return _isEnabled ? material : DisabledLook.flattened(material);
   }
@@ -246,48 +263,6 @@ class _StepIntent extends Intent {
   const _StepIntent(this.direction);
 
   final int direction;
-}
-
-class _Track extends StatelessWidget {
-  const _Track({
-    required this.height,
-    required this.filledWidth,
-    required this.barColor,
-    required this.trackColor,
-    required this.trackMaterial,
-    required this.barMaterial,
-  });
-
-  final double height;
-  final double filledWidth;
-  final Color barColor;
-  final Color trackColor;
-  final PhysicalMaterial trackMaterial;
-  final PhysicalMaterial barMaterial;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      child: PhysicalSurface(
-        color: trackColor,
-        material: trackMaterial,
-        borderRadius: PhysicalSurface.stadium,
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: SizedBox(
-            width: filledWidth,
-            child: PhysicalSurface(
-              color: barColor,
-              material: barMaterial,
-              borderRadius: PhysicalSurface.stadium,
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _Thumb extends StatelessWidget {

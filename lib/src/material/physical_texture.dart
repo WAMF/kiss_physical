@@ -584,12 +584,13 @@ class PhysicalTexture {
   PhysicalTexture faded(double amount) => _copyWith(strength: amount);
 
   /// This texture on a body coloured [color], in place of its natural
-  /// colour.
+  /// colour. Its grain, veins or flecks stay as much darker or lighter than
+  /// the body as they naturally are.
   PhysicalTexture tinted(Color color) {
     return PhysicalTexture._(
       substance,
       naturalColor: color,
-      secondColor: substance == PhysicalSubstance.metal ? color : secondColor,
+      secondColor: _marksOn(color),
       patinaColor: patinaColor,
       scale: scale,
       strength: strength,
@@ -603,6 +604,26 @@ class PhysicalTexture {
       figureB: _figureB,
       figureC: _figureC,
       figureD: _figureD,
+    );
+  }
+
+  /// The colour of the marks on a body tinted [color]: each channel of
+  /// [color] scaled as the natural marks are against the natural body.
+  Color? _marksOn(Color color) {
+    if (substance == PhysicalSubstance.metal) return color;
+    final body = naturalColor;
+    final marks = secondColor;
+    if (body == null || marks == null) return marks;
+    double scaled(double channel, double mark, double natural) {
+      final share = mark / math.max(natural, _Shade.leastChannel);
+      return (channel * share).clamp(0.0, 1.0);
+    }
+
+    return Color.from(
+      alpha: marks.a,
+      red: scaled(color.r, marks.r, body.r),
+      green: scaled(color.g, marks.g, body.g),
+      blue: scaled(color.b, marks.b, body.b),
     );
   }
 
@@ -686,4 +707,7 @@ class _Shade {
   static const dark = Color(0xFF000000);
   static const grainDarkening = 0.55;
   static const ageDarkening = 0.4;
+
+  /// The least a channel counts as when one colour is divided by another.
+  static const leastChannel = 0.01;
 }

@@ -208,6 +208,13 @@ class PhysicalMaterial {
     return copyWith(texture: texture);
   }
 
+  /// This material with whatever it is made of taking [color] in place of
+  /// its natural colour, so a body of it shows in the colour it is given.
+  /// A plain material is returned as it is.
+  PhysicalMaterial tintedTo(Color color) {
+    return texture.isPlain ? this : withTexture(texture.tinted(color));
+  }
+
   /// This material with [decals] settled on top of it.
   PhysicalMaterial withDecals(PhysicalDecals decals) {
     return copyWith(decals: decals);
