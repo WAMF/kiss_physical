@@ -55,7 +55,7 @@ Widget buildLettering(BuildContext context) {
     'Gloss': (accent, PhysicalMaterial.gloss),
     'Gold': (_Sample.gold, _Sample.polished),
     'Steel': (_Sample.steel, _Sample.polished),
-    'Engraved': (colors.surface.primary.background, _Sample.engraved),
+    'Engraved': (colors.secondary.background, _Sample.engraved),
   };
   return Stage(
     child: DefaultTextStyle.merge(
