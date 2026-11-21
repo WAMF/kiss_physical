@@ -72,6 +72,16 @@ abstract final class ShaderPrograms {
   /// The program behind `PhysicalLens`.
   static final lens = ShaderProgram('physical_lens');
 
+  static final _lettering = {
+    for (final program in SurfaceProgram.values)
+      program: ShaderProgram(
+        program._name.replaceFirst(_bodyPrefix, _letteringPrefix),
+      ),
+  };
+
+  static const _bodyPrefix = 'physical_';
+  static const _letteringPrefix = 'physical_text_';
+
   /// Whether any program has failed to compile, which leaves the bodies
   /// it draws flat.
   static final failed = ValueNotifier<bool>(false);
@@ -79,9 +89,13 @@ abstract final class ShaderPrograms {
   /// The program that draws bodies of [kind].
   static ShaderProgram surface(SurfaceProgram kind) => _surfaces[kind]!;
 
+  /// The program that draws the lettering of `PhysicalText` as a body of
+  /// [kind] would be drawn.
+  static ShaderProgram lettering(SurfaceProgram kind) => _lettering[kind]!;
+
   /// Every program there is.
   static Iterable<ShaderProgram> get all =>
-      [..._surfaces.values, pegboard, dotGrid, lens];
+      [..._surfaces.values, ..._lettering.values, pegboard, dotGrid, lens];
 }
 
 /// One fragment program, compiled when it is first wanted.

@@ -53,4 +53,11 @@ flutter:
     - shaders/physical_plain.frag
     - shaders/physical_plastic.frag
     - shaders/physical_stone.frag
+    - shaders/physical_text_effects.frag
+    - shaders/physical_text_marble.frag
+    - shaders/physical_text_metal.frag
+    - shaders/physical_text_plain.frag
+    - shaders/physical_text_plastic.frag
+    - shaders/physical_text_stone.frag
+    - shaders/physical_text_wood.frag
     - shaders/physical_wood.frag
