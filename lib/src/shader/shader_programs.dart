@@ -8,7 +8,7 @@ import 'package:kiss_physical/src/material/physical_texture.dart';
 /// The programs a body can be drawn with. Each leaves out what a body of
 /// its kind never needs, so it is quicker to compile and to run.
 enum SurfaceProgram {
-  /// A lit shape with no texture, growth, water, vessel or effect.
+  /// A lit shape with no texture, water, vessel or effect.
   plain('physical_plain'),
 
   /// A body with no texture that glows, burns, is rained on or is glass.
@@ -27,22 +27,15 @@ enum SurfaceProgram {
   stone('physical_stone'),
 
   /// A body of marble.
-  marble('physical_marble'),
-
-  /// A body of any substance with moss, grass or flowers on it.
-  grown('physical_surface');
+  marble('physical_marble');
 
   const SurfaceProgram(this._name);
 
   final String _name;
 
-  /// Whether the program draws growth, and so takes the uniforms for it.
-  bool get hasGrowth => this == grown;
-
   /// The program that draws a body of [material].
   static SurfaceProgram of(PhysicalMaterial material) {
     final decals = material.decals;
-    if (decals.moss + decals.grass + decals.flowers > 0) return grown;
     final texture = material.texture;
     if (!texture.isPlain) return _bySubstance[texture.substance]!;
     final isBare =

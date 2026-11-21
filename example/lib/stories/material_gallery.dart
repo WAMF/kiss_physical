@@ -1,10 +1,8 @@
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:kiss_color/kiss_color.dart';
 import 'package:kiss_layout/kiss_layout.dart';
 import 'package:kiss_physical/kiss_physical.dart';
-import 'package:kiss_physical_example/support/device_tilt.dart';
 import 'package:kiss_physical_example/support/stage.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -16,10 +14,6 @@ class _Sample {
   static const wideStage = 760.0;
   static const bottle = Size(120, 220);
   static const tumbler = Size(150, 150);
-  static const rockPeriod = Duration(milliseconds: 2600);
-  static const rockAngle = 0.5;
-  static const fullTurn = 2 * math.pi;
-  static const straightDown = Offset(0, 1);
   static const roomForFlames = 96.0;
 }
 
@@ -67,22 +61,16 @@ class _Worn {
   };
 }
 
-class _Overgrown {
+class _Dewy {
   static final all = {
-    'moss in cracked granite': _slabOf(PhysicalTexture.granite.dented(0.8))
-        .withDecals(const PhysicalDecals(moss: 0.45)),
-    'mossed over slate': _slabOf(PhysicalTexture.slate.imperfect(0.5))
-        .withDecals(const PhysicalDecals(moss: 0.9)),
-    'grass on travertine': _slabOf(PhysicalTexture.travertine.imperfect(0.6))
-        .withDecals(const PhysicalDecals(moss: 0.3, grass: 0.7)),
-    'meadow on concrete':
-        _slabOf(PhysicalTexture.concrete.imperfect(0.7)).withDecals(
-      const PhysicalDecals(moss: 0.45, grass: 0.5, flowers: 0.8),
-    ),
     'dew on steel': _slabOf(PhysicalTexture.stainlessSteel)
         .withDecals(const PhysicalDecals(dew: 0.8)),
     'dewy old oak': _slabOf(PhysicalTexture.oak.aged(0.7).imperfect(0.6))
-        .withDecals(const PhysicalDecals(moss: 0.35, dew: 0.6)),
+        .withDecals(const PhysicalDecals(dew: 0.6)),
+    'dew in cracked granite': _slabOf(PhysicalTexture.granite.dented(0.8))
+        .withDecals(const PhysicalDecals(dew: 0.5)),
+    'dew on slate': _slabOf(PhysicalTexture.slate.imperfect(0.5))
+        .withDecals(const PhysicalDecals(dew: 0.7)),
   };
 }
 
@@ -155,17 +143,14 @@ class _Glowing {
 
 class _Showpieces {
   static final all = {
-    'storm on a mossy wall': _slabOf(PhysicalTexture.slate.imperfect(0.7))
-        .withDecals(const PhysicalDecals(moss: 0.55))
+    'storm on a slate wall': _slabOf(PhysicalTexture.slate.imperfect(0.7))
         .withEffect(const PhysicalEffect.rain(intensity: 0.9)),
     'campfire log': _slabOf(PhysicalTexture.oak.aged(0.7).imperfect(0.6))
         .withEffect(const PhysicalEffect.flame(scorch: 0.6, embers: 0.7)),
     'copper left outside': _slabOf(PhysicalTexture.copper.aged(1).dented(0.4))
         .withDecals(const PhysicalDecals(dew: 0.7)),
-    'spring ruin':
-        _slabOf(PhysicalTexture.travertine.aged(0.5).dented(0.9)).withDecals(
-      const PhysicalDecals(moss: 0.5, grass: 0.6, flowers: 0.7, dew: 0.3),
-    ),
+    'ruin at dawn': _slabOf(PhysicalTexture.travertine.aged(0.5).dented(0.9))
+        .withDecals(const PhysicalDecals(dew: 0.3)),
     'workshop bench': _slabOf(
       PhysicalTexture.walnut.aged(0.4).dented(0.5).scratched(
             amount: 1,
@@ -216,7 +201,7 @@ Widget buildMetalGallery(BuildContext context) {
 }
 
 @widgetbook.UseCase(
-  name: 'Body · Glass and liquid',
+  name: 'Body · Glass',
   type: MaterialGallery,
   path: 'Materials',
 )
@@ -236,24 +221,9 @@ Widget buildGlassGallery(BuildContext context) {
           child: _Vessels(vessel: PhysicalVessel.glass(color: accent)),
         ),
         Specimen(
-          label: 'Holding liquid',
-          child: _Rocking(
-            builder: (context, gravity) => _Vessels(
-              vessel: PhysicalVessel.liquid(gravity: gravity),
-            ),
-          ),
-        ),
-        Specimen(
-          label: 'Nearly full, in the accent',
-          child: _Rocking(
-            builder: (context, gravity) => _Vessels(
-              vessel: PhysicalVessel.liquid(
-                color: accent,
-                fill: 0.85,
-                density: 0.9,
-                gravity: gravity,
-              ),
-            ),
+          label: 'Nearly solid, in the accent',
+          child: _Vessels(
+            vessel: PhysicalVessel.glass(color: accent, opacity: 0.8),
           ),
         ),
       ],
@@ -271,12 +241,12 @@ Widget buildWornGallery(BuildContext context) {
 }
 
 @widgetbook.UseCase(
-  name: 'Growth · Overgrown',
+  name: 'Decals · Dew',
   type: MaterialGallery,
   path: 'Materials',
 )
-Widget buildOvergrownGallery(BuildContext context) {
-  return _Swatches(materials: _Overgrown.all);
+Widget buildDewGallery(BuildContext context) {
+  return _Swatches(materials: _Dewy.all);
 }
 
 @widgetbook.UseCase(
@@ -381,56 +351,6 @@ class _Swatch extends StatelessWidget {
         ),
         Text(name),
       ],
-    );
-  }
-}
-
-/// Hands [builder] the way down for the liquid it draws: null where the
-/// device's tilt is felt, so the liquid follows it, and otherwise a
-/// direction that swings from side to side so it can be seen to slosh.
-class _Rocking extends StatefulWidget {
-  const _Rocking({required this.builder});
-
-  final Widget Function(BuildContext context, Offset? gravity) builder;
-
-  @override
-  State<_Rocking> createState() => _RockingState();
-}
-
-class _RockingState extends State<_Rocking>
-    with SingleTickerProviderStateMixin {
-  late final _swing = AnimationController(
-    vsync: this,
-    duration: _Sample.rockPeriod,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    if (!DeviceTilt.isFelt) _swing.repeat();
-  }
-
-  @override
-  void dispose() {
-    _swing.dispose();
-    super.dispose();
-  }
-
-  Offset get _swungGravity {
-    final turn = _Sample.rockAngle * math.sin(_swing.value * _Sample.fullTurn);
-    final Offset(:dx, :dy) = _Sample.straightDown;
-    return Offset(
-      dx * math.cos(turn) - dy * math.sin(turn),
-      dx * math.sin(turn) + dy * math.cos(turn),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (DeviceTilt.isFelt) return widget.builder(context, null);
-    return AnimatedBuilder(
-      animation: _swing,
-      builder: (context, _) => widget.builder(context, _swungGravity),
     );
   }
 }

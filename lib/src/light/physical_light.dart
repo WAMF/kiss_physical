@@ -68,7 +68,7 @@ class PhysicalLight extends InheritedWidget {
 
   /// Which way the real world's down lies on the screen: its direction is
   /// where things fall, and its length runs from 0 with the screen lying
-  /// flat to 1 with it stood upright. Flames, rain and liquids that are not
+  /// flat to 1 with it stood upright. Flames and rain that are not
   /// given a gravity of their own follow it.
   final ValueListenable<Offset> gravity;
 

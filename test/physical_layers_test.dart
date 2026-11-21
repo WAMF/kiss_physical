@@ -32,19 +32,21 @@ void main() {
       expect(const PhysicalEffect.neon(flicker: 0.5).isAnimated, isTrue);
     });
 
-    test('growth never moves a body; rain, fire and liquid do', () {
-      const overgrown = PhysicalDecals(moss: 1, grass: 1, flowers: 1, dew: 1);
-      final grown = PhysicalMaterial.satin.withDecals(overgrown);
+    test('dew and glass never move a body; rain and fire do', () {
+      const dewy = PhysicalDecals(dew: 1);
+      final settled = PhysicalMaterial.satin.withDecals(dewy);
 
-      expect(grown.isAnimated, isFalse);
-      expect(grown.withEffect(const PhysicalEffect.rain()).isAnimated, isTrue);
-      expect(grown.withEffect(const PhysicalEffect.flame()).isAnimated, isTrue);
+      expect(settled.isAnimated, isFalse);
       expect(
-        grown.withVessel(const PhysicalVessel.liquid()).isAnimated,
+        settled.withEffect(const PhysicalEffect.rain()).isAnimated,
         isTrue,
       );
       expect(
-        grown.withVessel(const PhysicalVessel.glass()).isAnimated,
+        settled.withEffect(const PhysicalEffect.flame()).isAnimated,
+        isTrue,
+      );
+      expect(
+        settled.withVessel(const PhysicalVessel.glass()).isAnimated,
         isFalse,
       );
     });
@@ -98,7 +100,7 @@ void main() {
   });
 
   test('a pressed material keeps what is on it and how it is drawn', () {
-    const decals = PhysicalDecals(moss: 0.5);
+    const decals = PhysicalDecals(dew: 0.5);
     const effect = PhysicalEffect.flame();
     const vessel = PhysicalVessel.glass();
     final material = PhysicalMaterial.gloss

@@ -32,8 +32,8 @@ Fragment shaders need the default (CanvasKit or Skwasm) web renderer.
 
 ## What is in it
 
-- **Materials**: galleries of finishes, woods, stones, metals, glass and
-  liquid, wear, growth, rain, fire and neon, and a playground with a knob
+- **Materials**: galleries of finishes, woods, stones, metals and glass,
+  wear, dew, rain, fire and neon, and a playground with a knob
   for every material parameter.
 - **Surfaces**: the lit body in each shape, panels and cards, glass and the
   refracting lens, the pegboard and the dot grid.

@@ -24,17 +24,11 @@ void main() {
     }
   });
 
-  test('programs that leave growth out leave room for more uniforms', () {
-    final uniform = RegExp(r'^uniform (?!sampler)\w+ \w+;', multiLine: true);
+  test('a program for one substance leaves the others out', () {
     final wood = ShaderSource.resolved('shaders/physical_wood.frag');
-    final grown = ShaderSource.resolved('shaders/physical_surface.frag');
+    final metal = ShaderSource.resolved('shaders/physical_metal.frag');
 
-    expect(
-      uniform.allMatches(wood).length,
-      lessThan(uniform.allMatches(grown).length),
-    );
     expect(wood, isNot(contains('metalTexture')));
-    expect(wood, isNot(contains('flowerAt')));
-    expect(grown, contains('flowerAt'));
+    expect(metal, contains('metalTexture'));
   });
 }

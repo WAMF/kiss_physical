@@ -7,17 +7,23 @@ homepage: https://wamf.github.io/kiss_physical/
 repository: https://github.com/WAMF/kiss_physical
 issue_tracker: https://github.com/WAMF/kiss_physical/issues
 screenshots:
-  - description: Showpiece materials with moss, rain, flame and wear, in the storybook.
+  - description: Showpiece materials with moss, flame, wear, growth, neon and liquid.
     path: screenshots/showpieces.jpg
-  - description: Brushed metal textures under the world light.
-    path: screenshots/metals.jpg
-  - description: Glass vessels, clear, tinted and holding liquid.
-    path: screenshots/glass_and_liquid.jpg
+  - description: Wood, marble, stone and metal textures under one light.
+    path: screenshots/textures.jpg
+  - description: A slider, progress bar and buttons on a raised panel.
+    path: screenshots/controls.jpg
 topics:
   - ui
   - widget
   - shader
   - design-system
+
+platforms:
+  android:
+  ios:
+  macos:
+  web:
 
 environment:
   sdk: ^3.6.0
@@ -47,5 +53,4 @@ flutter:
     - shaders/physical_plain.frag
     - shaders/physical_plastic.frag
     - shaders/physical_stone.frag
-    - shaders/physical_surface.frag
     - shaders/physical_wood.frag

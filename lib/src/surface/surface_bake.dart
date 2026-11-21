@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/painting.dart';
 
 /// Keeps the part of a physical body that is costly to draw and seldom
-/// changes: its texture, its wear and what has grown on it.
+/// changes: its texture and its wear.
 ///
 /// The surface shader works in layers. Those three do not move and do not
 /// depend on the light, so they are baked once into a sheet of maps and

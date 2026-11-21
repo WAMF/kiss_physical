@@ -3,6 +3,7 @@ import 'package:kiss_color/kiss_color.dart';
 import 'package:kiss_layout/kiss_layout.dart';
 import 'package:kiss_physical/kiss_physical.dart';
 import 'package:kiss_physical_example/support/stage.dart';
+import 'package:kiss_physical_example/support/substance_knob.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -13,6 +14,7 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 )
 Widget buildPanels(BuildContext context) {
   final layout = Layout.of(context);
+  final texture = SubstanceKnob.of(context);
   return Stage(
     child: Column(
       spacing: layout.itemSpacing.large,
@@ -20,6 +22,7 @@ Widget buildPanels(BuildContext context) {
         for (final isRaised in [false, true])
           PhysicalPanel(
             isRaised: isRaised,
+            texture: texture,
             child: Padding(
               padding: layout.edgeSpacing.inner.large,
               child: Row(
@@ -41,6 +44,7 @@ Widget buildCards(BuildContext context) {
   final layout = Layout.of(context);
   final colors = SemanticColors.of(context).data;
   final side = layout.heroSizes.medium.width;
+  final texture = SubstanceKnob.of(context);
   return Stage(
     child: Wrap(
       spacing: layout.itemSpacing.medium,
@@ -49,12 +53,14 @@ Widget buildCards(BuildContext context) {
         PhysicalCard(
           width: side,
           height: side,
+          material: PhysicalMaterial.satin.withTexture(texture),
           child: const Center(child: Text('PhysicalCard')),
         ),
         SizedBox.square(
           dimension: side,
           child: PhysicalCard.disc(
             color: colors.brand.primary.background,
+            material: PhysicalMaterial.bead.withTexture(texture),
             child: Center(
               child: Text(
                 'PhysicalCard.disc',
@@ -65,6 +71,7 @@ Widget buildCards(BuildContext context) {
         ),
         PhysicalCard.pill(
           height: layout.actionSizes.large.height,
+          material: PhysicalMaterial.gloss.withTexture(texture),
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Center(widthFactor: 1, child: Text('PhysicalCard.pill')),

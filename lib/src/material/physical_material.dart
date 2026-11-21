@@ -124,7 +124,7 @@ class PhysicalMaterial {
   /// What the body appears to be made of.
   final PhysicalTexture texture;
 
-  /// What has settled or grown on top of the body.
+  /// What has settled on top of the body.
   final PhysicalDecals decals;
 
   /// A special way of drawing the body: glowing, burning or made of glass.
@@ -144,9 +144,7 @@ class PhysicalMaterial {
   }
 
   /// Whether anything on the body moves, so it must repaint every frame.
-  bool get isAnimated =>
-      (vessel?.holdsLiquid ?? false) ||
-      effects.any((effect) => effect.isAnimated);
+  bool get isAnimated => effects.any((effect) => effect.isAnimated);
 
   /// How far the cast shadow can reach beyond the surface bounds.
   double get shadowReach =>
@@ -210,12 +208,19 @@ class PhysicalMaterial {
     return copyWith(texture: texture);
   }
 
-  /// This material with [decals] grown or settled on top of it.
+  /// This material with whatever it is made of taking [color] in place of
+  /// its natural colour, so a body of it shows in the colour it is given.
+  /// A plain material is returned as it is.
+  PhysicalMaterial tintedTo(Color color) {
+    return texture.isPlain ? this : withTexture(texture.tinted(color));
+  }
+
+  /// This material with [decals] settled on top of it.
   PhysicalMaterial withDecals(PhysicalDecals decals) {
     return copyWith(decals: decals);
   }
 
-  /// This material made of glass, empty or holding a liquid.
+  /// This material made of glass.
   PhysicalMaterial withVessel(PhysicalVessel vessel) {
     return copyWith(vessel: vessel);
   }

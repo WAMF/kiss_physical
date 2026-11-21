@@ -9,14 +9,14 @@ turns beneath it.
 pointer, or drag a finger, to carry the light. In an installed app the light
 follows the tilt of the device instead.
 
-![Showpiece materials: a mossy wall in the rain, a burning log, weathered copper and an overgrown ruin](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/showpieces.jpg)
+![Showpiece materials: a slate wall in the rain, a burning log, weathered copper, a ruin in the dew, a neon tube and tinted glass](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/showpieces.jpg)
 
 - **One light.** A `WorldLight` at the root follows the device's tilt and,
   optionally, the sun and moon through the day. Every surface below reads it.
 - **Materials.** A `PhysicalMaterial` describes a body's shape and finish:
   satin plastic, gloss pills, beads, wells, glass. Layer a texture (woods,
-  marbles, stones, metals), wear, growth, and effects (rain, flame, neon,
-  liquid) on top.
+  marbles, stones, metals), wear, dew, glass and effects (rain, flame,
+  neon) on top.
 - **Depth layers.** A pegboard background lies beneath the content and a
   parallax layer floats above it, so tilting the device shows real depth.
 - **Cheap to run.** Each body is one analytic shader pass in its own layer.
@@ -53,7 +53,7 @@ Future<void> main() async {
 ```
 
 `precache` compiles the programs nearly every app uses. Each texture
-family (wood, metal, plastic, stone, marble), the effects and growth have
+family (wood, metal, plastic, stone, marble) and the effects have
 programs of their own, compiled the first time a body needs one; until
 then that body paints flat in its own colour. To avoid that moment for
 materials you show at launch, name them:
@@ -74,7 +74,7 @@ no tilt to follow, the light rests above the top-left of the screen; use
 runApp(const PointerLight(child: MyApp()));
 ```
 
-With reduced motion the light rests, and flames, rain, liquid and neon
+With reduced motion the light rests, and flames, rain and neon
 flicker hold still.
 
 If a program cannot be compiled on a device, the bodies it draws stay flat
@@ -145,7 +145,7 @@ happening to it now:
 ```dart
 final weathered = PhysicalMaterial.satin
     .withTexture(PhysicalTexture.granite.imperfect(0.7))
-    .withDecals(const PhysicalDecals(moss: 0.5, dew: 0.4));
+    .withDecals(const PhysicalDecals(dew: 0.4));
 
 final brushed = PhysicalMaterial.satin
     .withTexture(PhysicalTexture.stainlessSteel);
@@ -154,11 +154,11 @@ final burning = PhysicalMaterial.gloss
     .withTexture(PhysicalTexture.walnut)
     .withEffect(const PhysicalEffect.flame());
 
-final tank = PhysicalMaterial.gloss
-    .withVessel(const PhysicalVessel.liquid());
+final jar = PhysicalMaterial.gloss
+    .withVessel(const PhysicalVessel.glass());
 ```
 
-Flames, rain and liquid follow real gravity as the device is tilted.
+Flames and rain follow real gravity as the device is tilted.
 
 ## Light
 
@@ -219,7 +219,7 @@ two shift in opposite directions.
 | `PhysicalPillButton` | A Material button drawn as a glossy pill |
 | `physicalButtonStyle` | The same look for any `FilledButton`, `TextButton` or `ElevatedButton`, as a `ButtonStyle` or theme |
 | `PhysicalIconButton` | A round bead carrying an icon, with a tooltip and a label for screen readers |
-| `PhysicalSlider` | A bead on a recessed track |
+| `PhysicalSlider` | A progress bar with a bead to drag along it |
 | `PhysicalProgressBar` | A glossy bar filling a recessed track |
 | `PhysicalCard`, `PhysicalCard.pill`, `PhysicalCard.disc` | A body that clips its content: slab, pill or disc |
 | `PhysicalPanel`, `PhysicalPanel.bottom` | A panel, flat or raised, free-standing or docked to the bottom edge |
@@ -244,6 +244,29 @@ PhysicalIconButton(
 ```
 
 Every component takes its content as `child` and its colour as `color`.
+
+A component keeps its own colour whatever it is made of: its texture is
+tinted to that colour, and the grain, veins or flecks stay as dark against
+it as they naturally are. The slider and the progress bar take a material
+for each part.
+
+```dart
+PhysicalSlider(
+  value: volume,
+  onChanged: setVolume,
+  semanticLabel: 'Volume',
+  barColor: accent,
+  trackColor: slate,
+  thumbColor: Colors.white,
+  thumbMaterial: PhysicalMaterial.bead.withTexture(PhysicalTexture.brass),
+  trackMaterial: PhysicalMaterial.well.withTexture(PhysicalTexture.oak),
+)
+```
+
+A texture is pinned to the centre of its body. On a body that grows from
+one side, pin it there with `PhysicalSurface.textureAlignment` and the
+grain stays put while more of it is uncovered, as it does on the bar of a
+progress bar.
 Buttons take `onPressed`; `PhysicalPressable`, a surface that can be tapped,
 takes `onTap`. A button or slider with no callback is frosted over and
 inert.
@@ -299,7 +322,7 @@ platform that checks them.
   one `PhysicalSurface` each.
 - Set `isFaceCovered` on a `PhysicalSurface` whose child hides its whole
   face, such as a photograph, so only the shadow is drawn.
-- Animated materials (rain, flame, liquid) repaint every frame while on
+- Animated materials (rain, flame) repaint every frame while on
   screen; plain ones rest until the light moves.
-- A body only makes what it shows: a plain card carries no rain, liquid or
+- A body only makes what it shows: a plain card carries no rain or
   flame machinery, and no baked layers.
