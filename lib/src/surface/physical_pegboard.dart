@@ -3,8 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'package:kiss_physical/src/light/light_vector.dart';
 import 'package:kiss_physical/src/light/physical_light.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
-import 'package:kiss_physical/src/shader/physical_shader.dart';
 import 'package:kiss_physical/src/shader/physical_shader_brush.dart';
+import 'package:kiss_physical/src/shader/shader_programs.dart';
 
 /// A flat panel behind [child], covered by a regular grid of small round
 /// sockets that are shaded by the nearest [PhysicalLight], with a soft wash
@@ -220,7 +220,7 @@ class _PegboardLayer extends StatefulWidget {
 }
 
 class _PegboardLayerState extends State<_PegboardLayer> {
-  final _brush = PhysicalShaderBrush(PhysicalShader.pegboard);
+  final _brush = PhysicalShaderBrush(ShaderPrograms.pegboard.whenLoaded);
 
   @override
   void dispose() {
@@ -263,7 +263,7 @@ class _PegboardPainter extends CustomPainter {
     required this.brush,
   }) : super(
           repaint: Listenable.merge(
-            [direction, sway, travel, PhysicalShader.pegboard],
+            [direction, sway, travel, ShaderPrograms.pegboard.whenLoaded],
           ),
         );
 

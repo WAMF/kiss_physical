@@ -6,12 +6,9 @@
 /// from `PhysicalSurface` bodies in a `PhysicalMaterial`.
 library;
 
-export 'src/components/physical_bottom_panel.dart';
 export 'src/components/physical_card.dart';
-export 'src/components/physical_disc.dart';
 export 'src/components/physical_icon_button.dart';
 export 'src/components/physical_panel.dart';
-export 'src/components/physical_pill.dart';
 export 'src/components/physical_pill_button.dart';
 export 'src/components/physical_progress_bar.dart';
 export 'src/components/physical_slider.dart';
@@ -27,5 +24,5 @@ export 'src/surface/physical_dot_grid.dart';
 export 'src/surface/physical_lens.dart';
 export 'src/surface/physical_parallax_layer.dart';
 export 'src/surface/physical_pegboard.dart' show PegboardGrid, PhysicalPegboard;
-export 'src/surface/physical_pressable.dart';
+export 'src/surface/physical_pressable.dart' hide PhysicalButtonBackground;
 export 'src/surface/physical_surface.dart';

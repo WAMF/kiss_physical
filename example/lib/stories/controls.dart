@@ -45,7 +45,7 @@ Widget buildPillButtons(BuildContext context) {
 
 @widgetbook.UseCase(
   name: 'Material buttons in a physical style',
-  type: PhysicalButtonBackground,
+  type: ButtonStyle,
   path: 'Controls/Buttons',
 )
 Widget buildStyledButtons(BuildContext context) {

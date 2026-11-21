@@ -39,7 +39,13 @@ dev_dependencies:
 flutter:
   shaders:
     - shaders/physical_dot_grid.frag
+    - shaders/physical_effects.frag
     - shaders/physical_lens.frag
+    - shaders/physical_marble.frag
+    - shaders/physical_metal.frag
     - shaders/physical_pegboard.frag
     - shaders/physical_plain.frag
+    - shaders/physical_plastic.frag
+    - shaders/physical_stone.frag
     - shaders/physical_surface.frag
+    - shaders/physical_wood.frag

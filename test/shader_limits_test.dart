@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+
+import 'shader_source.dart';
 
 class _Metal {
   /// Metal gives each uniform of a runtime effect a buffer of its own and
@@ -11,21 +11,30 @@ class _Metal {
 
 void main() {
   test('each shader stays within the uniforms Metal allows', () {
-    final shaders = Directory('shaders')
-        .listSync()
-        .whereType<File>()
-        .where((file) => file.path.endsWith('.frag'));
     final uniform = RegExp(r'^uniform (?!sampler)\w+ \w+;', multiLine: true);
+    final programs = ShaderSource.programs;
 
-    expect(shaders, isNotEmpty);
-    for (final shader in shaders) {
-      final count = uniform.allMatches(shader.readAsStringSync()).length;
-
+    expect(programs, isNotEmpty);
+    for (final MapEntry(key: name, value: source) in programs.entries) {
       expect(
-        count,
+        uniform.allMatches(source).length,
         lessThanOrEqualTo(_Metal.mostUniforms),
-        reason: shader.path,
+        reason: name,
       );
     }
+  });
+
+  test('programs that leave growth out leave room for more uniforms', () {
+    final uniform = RegExp(r'^uniform (?!sampler)\w+ \w+;', multiLine: true);
+    final wood = ShaderSource.resolved('shaders/physical_wood.frag');
+    final grown = ShaderSource.resolved('shaders/physical_surface.frag');
+
+    expect(
+      uniform.allMatches(wood).length,
+      lessThan(uniform.allMatches(grown).length),
+    );
+    expect(wood, isNot(contains('metalTexture')));
+    expect(wood, isNot(contains('flowerAt')));
+    expect(grown, contains('flowerAt'));
   });
 }

@@ -12,6 +12,7 @@ class _Sample {
   static const hoursShown = [6.0, 9.0, 12.0, 18.0, 20.5, 23.0];
   static const midsummer = (year: 2026, month: 6, day: 21);
   static const slabHeight = 96.0;
+  static const latitude = 42.0;
 }
 
 @widgetbook.UseCase(
@@ -121,6 +122,7 @@ class _HourOfLight extends StatelessWidget {
   SkyLight get _sky {
     const day = _Sample.midsummer;
     return SkyLight.at(
+      latitude: _Sample.latitude,
       DateTime(day.year, day.month, day.day).add(
         Duration(seconds: (hour * Duration.secondsPerHour).round()),
       ),

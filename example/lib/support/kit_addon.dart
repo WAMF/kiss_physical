@@ -121,6 +121,7 @@ class KitScope extends StatefulWidget {
 
 class _KitScopeState extends State<KitScope> {
   static const _referenceDay = (year: 2026, month: 6, day: 21);
+  static const _latitude = 42.0;
 
   late final _direction = ValueNotifier<Offset>(Offset.zero);
   late final _tone = ValueNotifier<LightTone>(LightTone.neutral);
@@ -145,7 +146,7 @@ class _KitScopeState extends State<KitScope> {
       _referenceDay.month,
       _referenceDay.day,
     ).add(Duration(seconds: (hour * Duration.secondsPerHour).round()));
-    return SkyLight.at(moment);
+    return SkyLight.at(moment, latitude: _latitude);
   }
 
   void _showLight() {

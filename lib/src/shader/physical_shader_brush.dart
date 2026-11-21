@@ -4,11 +4,12 @@ import 'package:flutter/foundation.dart';
 
 /// Owns the shader instance and paint reused across repaints of one layer.
 class PhysicalShaderBrush {
-  /// Creates a brush that draws with [program].
-  PhysicalShaderBrush(this.program);
+  /// Creates a brush that draws with [program], once it has one.
+  PhysicalShaderBrush([this.program]);
 
-  /// The program to draw with once it is available.
-  final ValueListenable<FragmentProgram?> program;
+  /// The program to draw with once it is available, or null while the
+  /// brush has not been given one.
+  ValueListenable<FragmentProgram?>? program;
 
   final _paint = Paint();
   FragmentProgram? _program;
@@ -18,7 +19,7 @@ class PhysicalShaderBrush {
   ///
   /// Call this first; when it is false there is nothing to draw with yet.
   bool get isReady {
-    final loaded = program.value;
+    final loaded = program?.value;
     if (loaded == null) return false;
     if (!identical(loaded, _program)) {
       _shader?.dispose();

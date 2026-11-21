@@ -27,6 +27,25 @@ class PhysicalLight extends InheritedWidget {
     super.key,
   });
 
+  /// Creates a light that stays where [direction] puts it, in white unless
+  /// a [tone] is given. Suited to previews, screenshots and devices that
+  /// cannot feel how they are held.
+  ///
+  /// [direction] is the screen-plane part of the unit vector pointing at
+  /// the light: `Offset.zero` is straight above the screen, negative y is
+  /// beyond its top edge and negative x beyond its left edge.
+  PhysicalLight.fixed({
+    required Widget child,
+    Offset? direction,
+    LightTone tone = LightTone.neutral,
+    Key? key,
+  }) : this(
+          direction: AlwaysStoppedAnimation(direction ?? still.value),
+          tone: AlwaysStoppedAnimation(tone),
+          key: key,
+          child: child,
+        );
+
   /// A fixed light above the top-left of the screen, as for a handset held
   /// at a reading angle.
   static const ValueListenable<Offset> still = _StillLight();

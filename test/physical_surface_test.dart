@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiss_physical/kiss_physical.dart';
+import 'package:kiss_physical/src/surface/physical_pressable.dart';
 
 void main() {
   group('PhysicalMaterial', () {
