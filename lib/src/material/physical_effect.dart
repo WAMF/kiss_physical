@@ -18,7 +18,7 @@ enum PhysicalEffectKind {
 /// burns, or rain falls on it.
 ///
 /// Effects are the last of a body's layers and the only ones that move.
-/// What the body is made of, how worn it is and what has grown on it are
+/// What the body is made of, how worn it is and what has settled on it are
 /// worked out once and kept; effects are worked out afresh every frame on
 /// top of them. A body can carry several at once, one of each kind:
 ///
@@ -30,7 +30,7 @@ enum PhysicalEffectKind {
 /// ```
 ///
 /// Fire and rain act on the body beneath them and keep its colour. Neon
-/// replaces it: a glowing body shows no texture, growth, fire or rain.
+/// replaces it: a glowing body shows no texture, fire or rain.
 @immutable
 class PhysicalEffect {
   const PhysicalEffect._(

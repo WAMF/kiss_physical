@@ -239,7 +239,7 @@ void main() {
   });
 
   group('a surface makes only what it needs', () {
-    testWidgets('a plain body draws without rain, liquid or a bake', (
+    testWidgets('a plain body draws without rain or a bake', (
       tester,
     ) async {
       await tester.runAsync(PhysicalShader.precacheAll);

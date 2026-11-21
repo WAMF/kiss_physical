@@ -39,6 +39,12 @@ the difference before committing it:
 flutter test --update-goldens test/golden
 ```
 
+`flutter test` does not notice a change to `shaders/include/surface.glsl`
+and goes on using the programs it compiled before. Delete `build` and
+`.dart_tool/flutter_build` before running the tests after editing it, or
+the sheets are compared against the old shader.
+
+
 If a change is not meant to alter the look, the sheets must still pass
 untouched.
 
@@ -46,7 +52,7 @@ untouched.
 
 - `shaders/include/surface.glsl` is the source of every surface program.
   Each `.frag` beside it sets switches and includes it: one per substance,
-  one for effects on a bare body, and `physical_surface.frag` with growth.
+  and one for effects on a bare body.
 - Metal allows a program 31 uniforms. `test/shader_limits_test.dart` counts
   them for every program. Put values that belong together in one uniform.
 - Uniforms are set by position from Dart, so a new one goes at the end of
@@ -54,6 +60,17 @@ untouched.
   only some programs take go last.
 - `physical_plain.frag` must light a body exactly as the full program does.
   `test/plain_shader_parity_test.dart` holds the two together.
+
+## Performance
+
+`example/lib/benchmark/main.dart` shows one shader program at a time under a
+moving light and prints the frames a second each reaches. Run it on a real
+device in profile mode before and after a change to a shader:
+
+```bash
+cd example
+flutter run --profile -t lib/benchmark/main.dart
+```
 
 ## Versions
 

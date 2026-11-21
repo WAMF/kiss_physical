@@ -48,10 +48,9 @@ void main() {
     expect(gravity, _Fixture.tippedLeft);
   });
 
-  test('water, flames and liquid follow the world unless told which way', () {
+  test('water and flames follow the world unless told which way', () {
     expect(const PhysicalEffect.rain().gravity, isNull);
     expect(const PhysicalEffect.flame().gravity, isNull);
-    expect(const PhysicalVessel.liquid().gravity, isNull);
     expect(
       const PhysicalEffect.flame(gravity: _Fixture.tippedLeft).gravity,
       _Fixture.tippedLeft,

@@ -38,29 +38,12 @@ void main() {
     test('effects, glass and dew on a bare body take the effects program', () {
       final bodies = [
         PhysicalMaterial.satin.withEffect(const PhysicalEffect.neon()),
-        PhysicalMaterial.gloss.withVessel(const PhysicalVessel.liquid()),
+        PhysicalMaterial.gloss.withVessel(const PhysicalVessel.glass()),
         PhysicalMaterial.satin.withDecals(const PhysicalDecals(dew: 0.5)),
       ];
 
       for (final body in bodies) {
         expect(SurfaceProgram.of(body), SurfaceProgram.effects);
-      }
-    });
-
-    test(
-        'anything grown takes the program with growth, whatever it is made '
-        'of', () {
-      const moss = PhysicalDecals(moss: 0.5);
-      final bodies = [
-        PhysicalMaterial.satin.withDecals(moss),
-        PhysicalMaterial.satin
-            .withTexture(PhysicalTexture.slate)
-            .withDecals(moss),
-      ];
-
-      for (final body in bodies) {
-        expect(SurfaceProgram.of(body), SurfaceProgram.grown);
-        expect(SurfaceProgram.of(body).hasGrowth, isTrue);
       }
     });
 

@@ -38,6 +38,21 @@ Widget _slider({
 }
 
 void main() {
+  testWidgets('the track spans the slider and the bar ends under the bead', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _slider(value: _Fixture.hoursPerDay / 2, onChanged: (_) {}),
+    );
+
+    final surfaces = find.byType(PhysicalSurface);
+    final track = tester.getRect(surfaces.at(0));
+    final bar = tester.getRect(surfaces.at(1));
+    final bead = tester.getRect(surfaces.at(2));
+    expect(track.width, _Fixture.width);
+    expect(bar.right, bead.center.dx);
+  });
+
   testWidgets('tapping the track moves the value there', (tester) async {
     double? chosen;
     await tester.pumpWidget(_slider(value: 0, onChanged: (v) => chosen = v));

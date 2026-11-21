@@ -95,7 +95,26 @@ void main() {
 
       expect(tinted.naturalColor, teal);
       expect(tinted.figure, PhysicalTexture.carrara.figure);
-      expect(tinted.secondColor, PhysicalTexture.carrara.secondColor);
+    });
+
+    test('a tinted preset keeps its marks as dark against the new body', () {
+      const teal = Color(0xFF12A5A0);
+      double luminanceOf(Color? color) => color!.computeLuminance();
+
+      const natural = PhysicalTexture.oak;
+      final tinted = natural.tinted(teal);
+
+      expect(
+        luminanceOf(tinted.secondColor),
+        lessThan(luminanceOf(tinted.naturalColor)),
+      );
+      expect(tinted.secondColor, isNot(natural.secondColor));
+    });
+
+    test('tinted metal is one colour throughout', () {
+      const teal = Color(0xFF12A5A0);
+
+      expect(PhysicalTexture.brass.tinted(teal).secondColor, teal);
     });
 
     test('grain falls back to a darker shade of the body', () {

@@ -200,6 +200,7 @@ class _PhysicalButtonBackgroundState extends State<PhysicalButtonBackground>
 
 /// A [ButtonStyle] that turns any Material button into a physical pill of
 /// the given [color], keeping the button's own focus, semantics and sizing.
+/// A texture on [material] is tinted to [color].
 ButtonStyle physicalButtonStyle({
   required Color color,
   required Color foregroundColor,
@@ -226,9 +227,11 @@ ButtonStyle physicalButtonStyle({
     ),
     backgroundBuilder: (context, states, child) {
       final isDisabled = states.contains(WidgetState.disabled);
+      final shown = isDisabled ? DisabledLook.frosted(color) : color;
+      final made = material.tintedTo(shown);
       return PhysicalButtonBackground(
-        color: isDisabled ? DisabledLook.frosted(color) : color,
-        material: isDisabled ? DisabledLook.flattened(material) : material,
+        color: shown,
+        material: isDisabled ? DisabledLook.flattened(made) : made,
         isPressed: states.contains(WidgetState.pressed),
         child: child ?? const SizedBox.shrink(),
       );

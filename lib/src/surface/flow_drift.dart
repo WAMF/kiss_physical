@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 /// How far something carried by gravity has streamed, and which way it is
-/// streaming now: the flames of a fire, or the bubbles rising in a liquid.
+/// streaming now, as the flames of a fire do.
 ///
 /// The surface shader moves such things by sliding a pattern along the way
 /// they travel. Were that slide worked out from the present direction and

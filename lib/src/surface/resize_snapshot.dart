@@ -39,9 +39,13 @@ class ResizeSnapshot extends ChangeNotifier {
     required Object look,
     required void Function(Canvas canvas) draw,
   }) {
-    final isResizing = _lastSize != null && _lastSize != size;
+    final before = _lastSize;
     _lastSize = size;
-    if (!isResizing || !_fits(area.size * pixelRatio)) {
+    final isResizing = before != null && before != size;
+    final canStandIn = isResizing &&
+        !_isReshaped(from: before, to: size) &&
+        _fits(area.size * pixelRatio);
+    if (!canStandIn) {
       _discard();
       draw(canvas);
       return;
@@ -82,6 +86,13 @@ class ResizeSnapshot extends ChangeNotifier {
     final isClose =
         widthScale <= _Stretch.furthest && widthScale >= 1 / _Stretch.furthest;
     return isEven && isClose;
+  }
+
+  /// Whether one side kept its length while the other changed, as when a
+  /// bar grows longer. However small such a step is, a picture stretched to
+  /// it would drag the surface's texture along with the moving edge.
+  static bool _isReshaped({required Size from, required Size to}) {
+    return (from.width == to.width) != (from.height == to.height);
   }
 
   void _take({

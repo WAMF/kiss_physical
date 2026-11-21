@@ -137,7 +137,6 @@ void main() {
         bodies: [
           _slab(
             _of(PhysicalTexture.slate.imperfect(0.7))
-                .withDecals(const PhysicalDecals(moss: 0.55))
                 .withEffect(const PhysicalEffect.rain(intensity: 0.9)),
           ),
           _slab(
@@ -150,14 +149,8 @@ void main() {
                 .withDecals(const PhysicalDecals(dew: 0.7)),
           ),
           _slab(
-            _of(PhysicalTexture.travertine.aged(0.5).dented(0.9)).withDecals(
-              const PhysicalDecals(
-                moss: 0.5,
-                grass: 0.6,
-                flowers: 0.7,
-                dew: 0.3,
-              ),
-            ),
+            _of(PhysicalTexture.travertine.aged(0.5).dented(0.9))
+                .withDecals(const PhysicalDecals(dew: 0.3)),
           ),
           _slab(
             PhysicalMaterial.gloss.withEffect(
@@ -166,11 +159,7 @@ void main() {
           ),
           _slab(
             PhysicalMaterial.gloss.withVessel(
-              const PhysicalVessel.liquid(
-                color: _Shot.accent,
-                fill: 0.7,
-                gravity: Offset(0.25, 1),
-              ),
+              const PhysicalVessel.glass(color: _Shot.accent),
             ),
           ),
         ],

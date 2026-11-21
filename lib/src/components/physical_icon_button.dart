@@ -49,12 +49,14 @@ class PhysicalIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isEnabled = onPressed != null;
     final resting = color ?? PhysicalDefaults.surfaceColor(context);
+    final shown = isEnabled ? resting : DisabledLook.frosted(resting);
+    final made = material.tintedTo(shown);
     final button = SizedBox.square(
       dimension: diameter,
       child: PhysicalPressable(
         onTap: onPressed,
-        color: isEnabled ? resting : DisabledLook.frosted(resting),
-        material: isEnabled ? material : DisabledLook.flattened(material),
+        color: shown,
+        material: isEnabled ? made : DisabledLook.flattened(made),
         semanticLabel: semanticLabel ?? tooltip,
         child: Center(
           child: isEnabled
