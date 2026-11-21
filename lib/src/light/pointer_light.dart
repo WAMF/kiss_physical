@@ -1,18 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:kiss_physical/kiss_physical.dart';
+import 'package:kiss_physical/src/light/physical_light.dart';
+import 'package:kiss_physical/src/light/sky_light.dart';
 
 /// Lights [child] from wherever the pointer is, for devices that cannot
-/// feel how they are held.
+/// feel how they are held: desktops and the web.
 ///
 /// Moving the pointer towards an edge carries the light there and sways the
-/// depth layers as tilting a handset that way would.
+/// depth layers as tilting a handset that way would. A finger dragged
+/// across the screen does the same. With reduced motion the light rests.
 class PointerLight extends StatefulWidget {
-  const PointerLight({required this.tone, required this.child, super.key});
+  /// Creates a light that follows the pointer over [child].
+  const PointerLight({required this.child, this.tone, super.key});
 
-  /// The colours of the light.
-  final ValueListenable<LightTone> tone;
+  /// The colours of the light, or null for white.
+  final ValueListenable<LightTone>? tone;
 
+  /// The subtree the light falls on.
   final Widget child;
 
   @override
@@ -25,8 +29,10 @@ class _PointerLightState extends State<PointerLight> {
 
   final _direction = ValueNotifier<Offset>(PhysicalLight.still.value);
   final _sway = ValueNotifier<Offset>(Offset.zero);
+  bool _isResting = false;
 
   void _follow(PointerEvent event, Size size) {
+    if (_isResting || size.isEmpty) return;
     final fromCentre = Offset(
       event.localPosition.dx / size.width - 0.5,
       event.localPosition.dy / size.height - 0.5,
@@ -43,14 +49,24 @@ class _PointerLightState extends State<PointerLight> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _isResting = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (!_isResting) return;
+    _direction.value = PhysicalLight.still.value;
+    _sway.value = Offset.zero;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) => Listener(
+        behavior: HitTestBehavior.translucent,
         onPointerHover: (event) => _follow(event, constraints.biggest),
         onPointerMove: (event) => _follow(event, constraints.biggest),
         child: PhysicalLight(
           direction: _direction,
-          tone: widget.tone,
+          tone: widget.tone ?? PhysicalLight.neutralTone,
           sway: _sway,
           child: widget.child,
         ),

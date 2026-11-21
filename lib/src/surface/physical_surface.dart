@@ -179,6 +179,10 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
   final _bubbles = FlowDrift();
   final _rain = SurfaceRain();
   Duration _lastTick = Duration.zero;
+
+  /// Whether the user asked for reduced motion, which holds flames, rain,
+  /// liquid and flicker still.
+  bool _isStilled = false;
   ValueListenable<Offset> _world = PhysicalLight.upright;
   late final Ticker _clock = createTicker(_tick);
 
@@ -191,6 +195,13 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
   @override
   void didUpdateWidget(_SurfaceLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _runClockWhileAnimated();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _isStilled = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     _runClockWhileAnimated();
   }
 
@@ -221,7 +232,9 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
   /// running and drying after the rain stops.
   bool get _isAnimated {
     final material = widget.material;
-    return !widget.isOverlay && (material.isAnimated || _rain.hasWater);
+    return !widget.isOverlay &&
+        !_isStilled &&
+        (material.isAnimated || _rain.hasWater);
   }
 
   void _tick(Duration elapsed) {

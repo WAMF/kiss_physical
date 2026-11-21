@@ -20,3 +20,7 @@
   `PhysicalDisc`; `PhysicalPanel.bottom` replaces `PhysicalBottomPanel`.
 - `PhysicalLight.fixed` places a light without a listenable.
 - `SkyLight.at` takes its latitude from the app.
+- `PointerLight` carries the light with the pointer on desktop and web.
+- Reduced motion holds flames, rain, liquid and flicker still.
+- `PhysicalShader.hasFailed` reports a program that could not be compiled.
+- `PhysicalProgressBar` tells screen readers its name and how full it is.

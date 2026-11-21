@@ -79,6 +79,10 @@ abstract final class ShaderPrograms {
   /// The program behind `PhysicalLens`.
   static final lens = ShaderProgram('physical_lens');
 
+  /// Whether any program has failed to compile, which leaves the bodies
+  /// it draws flat.
+  static final failed = ValueNotifier<bool>(false);
+
   /// The program that draws bodies of [kind].
   static ShaderProgram surface(SurfaceProgram kind) => _surfaces[kind]!;
 
@@ -133,6 +137,7 @@ class ShaderProgram {
       final loaded = await _fromEither();
       if (attempt == _attempt) _program.value = loaded;
     } on Object catch (error, stackTrace) {
+      if (attempt == _attempt) ShaderPrograms.failed.value = true;
       FlutterError.reportError(
         FlutterErrorDetails(
           exception: error,

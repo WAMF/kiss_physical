@@ -13,6 +13,7 @@ export 'src/components/physical_pill_button.dart';
 export 'src/components/physical_progress_bar.dart';
 export 'src/components/physical_slider.dart';
 export 'src/light/physical_light.dart';
+export 'src/light/pointer_light.dart';
 export 'src/light/sky_light.dart';
 export 'src/material/physical_decals.dart';
 export 'src/material/physical_effect.dart';
