@@ -7,6 +7,7 @@ on:
 
 env:
   SUPPORTED_FLUTTER: 3.44.4
+  OLDEST_FLUTTER: 3.41.x
 
 jobs:
   check:
@@ -41,6 +42,19 @@ jobs:
           name: golden-failures
           path: test/golden/failures
 
+  oldest:
+    name: Oldest supported Flutter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.OLDEST_FLUTTER }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+
   latest:
     name: Latest stable Flutter
     runs-on: ubuntu-latest
@@ -70,3 +84,4 @@ jobs:
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter analyze
       - run: flutter build web
+      - run: flutter build web -t lib/minimal.dart

@@ -8,7 +8,7 @@ import 'package:kiss_physical/src/material/physical_texture.dart';
 /// The programs a body can be drawn with. Each leaves out what a body of
 /// its kind never needs, so it is quicker to compile and to run.
 enum SurfaceProgram {
-  /// A lit shape with no texture, growth, water, vessel or effect.
+  /// A lit shape with no texture, water, vessel or effect.
   plain('physical_plain'),
 
   /// A body with no texture that glows, burns, is rained on or is glass.
@@ -27,22 +27,15 @@ enum SurfaceProgram {
   stone('physical_stone'),
 
   /// A body of marble.
-  marble('physical_marble'),
-
-  /// A body of any substance with moss, grass or flowers on it.
-  grown('physical_surface');
+  marble('physical_marble');
 
   const SurfaceProgram(this._name);
 
   final String _name;
 
-  /// Whether the program draws growth, and so takes the uniforms for it.
-  bool get hasGrowth => this == grown;
-
   /// The program that draws a body of [material].
   static SurfaceProgram of(PhysicalMaterial material) {
     final decals = material.decals;
-    if (decals.moss + decals.grass + decals.flowers > 0) return grown;
     final texture = material.texture;
     if (!texture.isPlain) return _bySubstance[texture.substance]!;
     final isBare =
@@ -79,6 +72,10 @@ abstract final class ShaderPrograms {
   /// The program behind `PhysicalLens`.
   static final lens = ShaderProgram('physical_lens');
 
+  /// Whether any program has failed to compile, which leaves the bodies
+  /// it draws flat.
+  static final failed = ValueNotifier<bool>(false);
+
   /// The program that draws bodies of [kind].
   static ShaderProgram surface(SurfaceProgram kind) => _surfaces[kind]!;
 
@@ -100,6 +97,7 @@ class ShaderProgram {
   final String _asset;
   final _program = ValueNotifier<FragmentProgram?>(null);
   Future<void>? _loading;
+  Zone? _loadingZone;
   int _attempt = 0;
 
   /// Notifies when the program becomes available, and starts compiling it
@@ -115,9 +113,18 @@ class ShaderProgram {
   static bool isLoadingAllowed = true;
 
   /// Compiles the program once.
+  ///
+  /// A compile begun in another zone is not waited on: a widget test's fake
+  /// clock can leave one that never finishes, and waiting on it would hang
+  /// whatever asked next.
   Future<void> load() {
-    if (!isLoadingAllowed) return Future.value();
-    return _loading ??= _load(_attempt);
+    if (!isLoadingAllowed || _program.value != null) return Future.value();
+    final pending = _loading;
+    if (pending != null && identical(_loadingZone, Zone.current)) {
+      return pending;
+    }
+    _loadingZone = Zone.current;
+    return _loading = _load(_attempt);
   }
 
   /// Forgets the program, as if nothing had asked for it yet.
@@ -133,6 +140,7 @@ class ShaderProgram {
       final loaded = await _fromEither();
       if (attempt == _attempt) _program.value = loaded;
     } on Object catch (error, stackTrace) {
+      if (attempt == _attempt) ShaderPrograms.failed.value = true;
       FlutterError.reportError(
         FlutterErrorDetails(
           exception: error,

@@ -1,13 +1,13 @@
 #version 460 core
 
-// The plain body of physical_surface.frag on its own: the same rounded box,
-// shoulder, crown, light and cast shadow, with no texture, wear, growth,
-// water, vessel or effect. Most bodies in an app are plain, and this draws
+// The plain body of include/surface.glsl on its own: the same rounded box,
+// shoulder, crown, light and cast shadow, with no texture, wear, water,
+// vessel or effect. Most bodies in an app are plain, and this draws
 // them without carrying the cost of the layers they do not have. The two
 // must light a plain body identically, so any change to the outline or the
 // lighting belongs in both.
 //
-// The uniforms are the first nine of physical_surface.frag, in its order.
+// The uniforms are the first nine of include/surface.glsl, in its order.
 
 #include <flutter/runtime_effect.glsl>
 

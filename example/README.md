@@ -32,8 +32,8 @@ Fragment shaders need the default (CanvasKit or Skwasm) web renderer.
 
 ## What is in it
 
-- **Materials**: galleries of finishes, woods, stones, metals, glass and
-  liquid, wear, growth, rain, fire and neon, and a playground with a knob
+- **Materials**: galleries of finishes, woods, stones, metals and glass,
+  wear, dew, rain, fire and neon, and a playground with a knob
   for every material parameter.
 - **Surfaces**: the lit body in each shape, panels and cards, glass and the
   refracting lens, the pegboard and the dot grid.
@@ -41,7 +41,8 @@ Fragment shaders need the default (CanvasKit or Skwasm) web renderer.
   the sun and moon through a day.
 - **Depth**: the pegboard beneath the content and a menu floating above it.
 - **Controls**: pill buttons, Material buttons in the physical style, icon
-  buttons, the slider and the progress bar.
+  buttons, the slider and the progress bar. Each has a **Made of** knob,
+  and the slider and progress bar have one for each part.
 
 The **Addons** tab has a **Light and colour** group that applies to every use
 case: the accent colour, the hour of the day, where the light hangs, whether

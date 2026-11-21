@@ -7,14 +7,12 @@ import 'package:flutter/widgets.dart';
 import 'package:kiss_physical/src/light/light_vector.dart';
 import 'package:kiss_physical/src/light/physical_light.dart';
 import 'package:kiss_physical/src/light/sky_light.dart';
-import 'package:kiss_physical/src/material/physical_decals.dart';
 import 'package:kiss_physical/src/material/physical_effect.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/material/physical_vessel.dart';
 import 'package:kiss_physical/src/shader/physical_shader_brush.dart';
 import 'package:kiss_physical/src/shader/shader_programs.dart';
 import 'package:kiss_physical/src/surface/flow_drift.dart';
-import 'package:kiss_physical/src/surface/liquid_slosh.dart';
 import 'package:kiss_physical/src/surface/rain_map.dart';
 import 'package:kiss_physical/src/surface/resize_snapshot.dart';
 import 'package:kiss_physical/src/surface/surface_bake.dart';
@@ -35,6 +33,7 @@ class PhysicalSurface extends StatelessWidget {
     this.press,
     this.clipBehavior = Clip.none,
     this.isFaceCovered = false,
+    this.textureAlignment = Alignment.center,
     super.key,
   });
 
@@ -64,6 +63,13 @@ class PhysicalSurface extends StatelessWidget {
   /// spares lighting a face nobody can see.
   final bool isFaceCovered;
 
+  /// The point of the body its texture is pinned to. The grain or veins
+  /// there stay put while the body changes size, so a bar that grows from
+  /// its start uncovers more of one texture when pinned to
+  /// [AlignmentDirectional.centerStart], where pinned to its centre the
+  /// texture would slide along as it grew.
+  final AlignmentGeometry textureAlignment;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -78,6 +84,7 @@ class PhysicalSurface extends StatelessWidget {
             press: press,
             isOverlay: false,
             isFaceCovered: isFaceCovered,
+            textureAlignment: textureAlignment,
           ),
         ),
         if (clipBehavior == Clip.none)
@@ -131,6 +138,7 @@ class PhysicalGlass extends StatelessWidget {
               press: null,
               isOverlay: true,
               isFaceCovered: false,
+              textureAlignment: Alignment.center,
             ),
           ),
         ),
@@ -147,6 +155,7 @@ class _SurfaceLayer extends StatefulWidget {
     required this.press,
     required this.isOverlay,
     required this.isFaceCovered,
+    required this.textureAlignment,
   });
 
   final Color color;
@@ -155,6 +164,7 @@ class _SurfaceLayer extends StatefulWidget {
   final Animation<double>? press;
   final bool isOverlay;
   final bool isFaceCovered;
+  final AlignmentGeometry textureAlignment;
 
   @override
   State<_SurfaceLayer> createState() => _SurfaceLayerState();
@@ -168,17 +178,14 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
     ShaderPrograms.surface(SurfaceProgram.plain).whenLoaded,
   );
 
-  /// The program the layered brushes were last given, which says which
-  /// uniforms they take.
-  SurfaceProgram _layered = SurfaceProgram.plain;
-  final _bake = SurfaceBake();
+  final _motion = _Motion();
   final _resize = ResizeSnapshot();
   final _seconds = ValueNotifier<double>(0);
-  final _slosh = LiquidSlosh();
-  final _drift = FlowDrift();
-  final _bubbles = FlowDrift();
-  final _rain = SurfaceRain();
   Duration _lastTick = Duration.zero;
+
+  /// Whether the user asked for reduced motion, which holds flames, rain
+  /// and flicker still.
+  bool _isStilled = false;
   ValueListenable<Offset> _world = PhysicalLight.upright;
   late final Ticker _clock = createTicker(_tick);
 
@@ -195,14 +202,20 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _isStilled = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _runClockWhileAnimated();
+  }
+
+  @override
   void dispose() {
     _clock.dispose();
-    _rain.dispose();
+    _motion.dispose();
     _seconds.dispose();
     _brush.dispose();
     _bakeBrush.dispose();
     _plainBrush.dispose();
-    _bake.dispose();
     _resize.dispose();
     super.dispose();
   }
@@ -221,33 +234,31 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
   /// running and drying after the rain stops.
   bool get _isAnimated {
     final material = widget.material;
-    return !widget.isOverlay && (material.isAnimated || _rain.hasWater);
+    return !widget.isOverlay &&
+        !_isStilled &&
+        (material.isAnimated || _motion.hasWater);
   }
 
   void _tick(Duration elapsed) {
     final material = widget.material;
     final sinceLast = _secondsIn(elapsed - _lastTick);
-    final vessel = material.vessel;
-    if (vessel != null && vessel.holdsLiquid) {
-      final gravity = vessel.gravity ?? _world.value;
-      _slosh.advance(sinceLast, gravity);
-      _bubbles.advance(sinceLast, gravity);
-    }
     final flame = material.effectOf(PhysicalEffectKind.flame);
     if (flame != null) {
-      _drift.advance(
+      _motion.drift.advance(
         sinceLast,
         flame.gravity ?? _world.value,
         whenFlat: PhysicalLight.upright.value * _Shape.flatDeviceLean,
       );
     }
     final falling = material.effectOf(PhysicalEffectKind.rain);
-    _rain.advance(
-      sinceLast,
-      gravity: falling?.gravity ?? _world.value,
-      rain: falling?.intensity ?? 0,
-      slip: material.slip,
-    );
+    if (falling != null || _motion.hasWater) {
+      _motion.rain.advance(
+        sinceLast,
+        gravity: falling?.gravity ?? _world.value,
+        rain: falling?.intensity ?? 0,
+        slip: material.slip,
+      );
+    }
     _lastTick = elapsed;
     _seconds.value = _secondsIn(elapsed) % _Clock.wrapSeconds;
     if (!_isAnimated) _clock.stop();
@@ -259,7 +270,6 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
     final kind = SurfaceProgram.of(material);
     if (kind == SurfaceProgram.plain) return;
     final program = ShaderPrograms.surface(kind).whenLoaded;
-    _layered = kind;
     _brush.program = program;
     _bakeBrush.program = program;
   }
@@ -281,20 +291,18 @@ class _SurfaceLayerState extends State<_SurfaceLayer>
           press: widget.press,
           isOverlay: widget.isOverlay,
           isFaceCovered: widget.isFaceCovered,
+          textureAlignment: widget.textureAlignment.resolve(
+            Directionality.maybeOf(context),
+          ),
           direction: PhysicalLight.of(context),
           tone: PhysicalLight.toneOf(context),
           pixelRatio: MediaQuery.devicePixelRatioOf(context),
           world: _world,
           seconds: _seconds,
-          slosh: _slosh,
-          drift: _drift,
-          bubbles: _bubbles,
-          rain: _rain,
-          layered: _layered,
+          motion: _motion,
           brush: _brush,
           bakeBrush: _bakeBrush,
           plainBrush: _plainBrush,
-          bake: _bake,
           resize: _resize,
         ),
       ),
@@ -310,20 +318,16 @@ class _SurfacePainter extends CustomPainter {
     required this.press,
     required this.isOverlay,
     required this.isFaceCovered,
+    required this.textureAlignment,
     required this.direction,
     required this.tone,
     required this.pixelRatio,
     required this.world,
     required this.seconds,
-    required this.slosh,
-    required this.drift,
-    required this.bubbles,
-    required this.rain,
-    required this.layered,
+    required this.motion,
     required this.brush,
     required this.bakeBrush,
     required this.plainBrush,
-    required this.bake,
     required this.resize,
   }) : super(
           repaint: Listenable.merge([
@@ -343,11 +347,12 @@ class _SurfacePainter extends CustomPainter {
   final Animation<double>? press;
   final bool isOverlay;
   final bool isFaceCovered;
+  final Alignment textureAlignment;
   final ValueListenable<Offset> direction;
   final ValueListenable<LightTone> tone;
   final double pixelRatio;
 
-  /// The real world's gravity on the screen, for water, flames and liquid
+  /// The real world's gravity on the screen, for water and flames
   /// that are given none of their own. It is read as each frame is drawn
   /// and does not itself cause one.
   final ValueListenable<Offset> world;
@@ -355,28 +360,17 @@ class _SurfacePainter extends CustomPainter {
   /// Time for animated decals, in seconds.
   final ValueListenable<double> seconds;
 
-  /// Where the surface of a liquid effect has swung to.
-  final LiquidSlosh slosh;
+  /// What moves on the surface by itself: flames, rain,
+  /// and the layers kept from frame to frame.
+  final _Motion motion;
 
-  /// Which way the flames of a fire effect stream and how far they have.
-  final FlowDrift drift;
-
-  /// How far the bubbles in a liquid have risen, and against which way.
-  final FlowDrift bubbles;
-
-  /// The drops of rain on the surface.
-  final SurfaceRain rain;
-
-  /// The program [brush] and [bakeBrush] draw with.
-  final SurfaceProgram layered;
   final PhysicalShaderBrush brush;
 
-  /// Draws the layers that can be kept from frame to frame into [bake].
+  /// Draws the layers that can be kept from frame to frame, to be baked.
   final PhysicalShaderBrush bakeBrush;
 
   /// Draws a body that [_isPlain] with the lean program made for it.
   final PhysicalShaderBrush plainBrush;
-  final SurfaceBake bake;
 
   /// Stands in for the shader while the surface is changing size.
   final ResizeSnapshot resize;
@@ -462,43 +456,36 @@ class _SurfacePainter extends CustomPainter {
         material.decals.isEmpty &&
         material.vessel == null &&
         material.effects.isEmpty &&
-        !rain.hasWater;
+        !motion.hasWater;
   }
 
   /// Whether the body has layers worth keeping: a plain one is cheap enough
   /// to draw whole every time.
   bool get _isWorthBaking {
-    final decals = material.decals;
-    final isGrown = decals.moss + decals.grass + decals.flowers > 0;
     return !isOverlay &&
-        !decals.showHints &&
+        !material.decals.showHints &&
         material.vessel == null &&
-        (!material.texture.isPlain || isGrown);
+        !material.texture.isPlain;
   }
 
-  /// The kept texture, wear and growth of the body at rest, baked now if
+  /// The kept texture and wear of the body at rest, baked now if
   /// it has settled since it last changed.
   ui.Image? _bakedMaps(Size size, RRect outline) {
     if (!_isWorthBaking || !bakeBrush.isReady) return null;
-    final decals = material.decals;
     final key = (
       size,
       pixelRatio,
       outline,
       color,
+      textureAlignment,
       material.texture,
       material.roughness,
       material.specularTint,
       material.bevel,
       material.crown,
       material.relief,
-      decals.moss,
-      decals.grass,
-      decals.flowers,
-      decals.flowerColor,
-      decals.grass > 0 ? _growthGravity(decals) : Offset.zero,
     );
-    return bake.mapsFor(
+    return motion.bake.mapsFor(
       key,
       size: size,
       pixelRatio: pixelRatio,
@@ -525,6 +512,10 @@ class _SurfacePainter extends CustomPainter {
   }) {
     final isBaking = pass == _Pass.bake;
     final texture = shaped.texture;
+    final textureOrigin = Offset(
+      textureAlignment.x * size.width / 2,
+      textureAlignment.y * size.height / 2,
+    );
     final isLive = !isOverlay && !isBaking;
     final neon = isLive ? shaped.effectOf(PhysicalEffectKind.neon) : null;
     final flame = isLive ? shaped.effectOf(PhysicalEffectKind.flame) : null;
@@ -533,17 +524,13 @@ class _SurfacePainter extends CustomPainter {
     final glowing = neon ?? flame;
     final glow = glowing?.color ?? _Shape.glass;
     final glaze = vessel?.color ?? _Shape.glass;
-    final liquidUp = slosh.surfaceUp;
     final body = texture.isPlain ? color : texture.naturalColor ?? color;
     final second = texture.secondColorOn(body);
     final patina = texture.patinaColorOn(body);
     final figure = texture.figure;
     final decals = shaped.decals;
     final isWatered = isLive;
-    final isRainedOn = isLive && (falling != null || rain.hasWater);
-    final petal = decals.flowerColor;
-    final pull =
-        isBaking ? _growthGravity(decals) : falling?.gravity ?? world.value;
+    final isRainedOn = isLive && (falling != null || motion.hasWater);
     final bakedSize =
         maps == null ? Size.zero : SurfaceBake.sizeOf(maps, pixelRatio);
     _configureBody(
@@ -576,8 +563,8 @@ class _SurfacePainter extends CustomPainter {
       ..setFloat(47, isWatered ? decals.dew : 0)
       ..setFloat(48, falling?.intensity ?? 0)
       ..setFloat(49, isBaking ? 0 : seconds.value)
-      ..setFloat(50, pull.dx)
-      ..setFloat(51, pull.dy)
+      ..setFloat(50, textureOrigin.dx)
+      ..setFloat(51, textureOrigin.dy)
       ..setFloat(52, decals.showHints && isWatered ? 1 : 0)
       ..setFloat(53, _Drawn.kindOf(neon: neon, flame: flame))
       ..setFloat(54, glowing?.intensity ?? 0)
@@ -589,44 +576,28 @@ class _SurfacePainter extends CustomPainter {
       ..setFloat(57, glow.r)
       ..setFloat(58, glow.g)
       ..setFloat(59, glow.b)
-      ..setFloat(60, (flame?.height ?? 0) * drift.rise)
+      ..setFloat(60, (flame?.height ?? 0) * motion.drift.rise)
       ..setFloat(61, vessel?.opacity ?? 0)
-      ..setFloat(62, vessel?.fill ?? 0)
-      ..setFloat(63, vessel?.density ?? 0)
-      ..setFloat(64, drift.down.dx)
-      ..setFloat(65, drift.down.dy)
-      ..setFloat(66, liquidUp.dx)
-      ..setFloat(67, liquidUp.dy)
-      ..setFloat(68, slosh.agitation)
-      ..setFloat(69, slosh.foam)
-      ..setFloat(70, isRainedOn ? 1 : 0)
-      ..setFloat(71, pass.index.toDouble())
-      ..setFloat(72, bakedSize.width)
-      ..setFloat(73, bakedSize.height)
+      ..setFloat(62, motion.drift.down.dx)
+      ..setFloat(63, motion.drift.down.dy)
+      ..setFloat(64, isRainedOn ? 1 : 0)
+      ..setFloat(65, pass.index.toDouble())
+      ..setFloat(66, bakedSize.width)
+      ..setFloat(67, bakedSize.height)
       ..setFloat(
-        74,
+        68,
         flame == null ? 0 : shaped.flammability,
       )
-      ..setFloat(75, flame?.scorchDepth ?? 0)
-      ..setFloat(76, flame?.embers ?? 0)
-      ..setFloat(77, drift.travelled.dx)
-      ..setFloat(78, drift.travelled.dy)
-      ..setFloat(79, _Drawn.bodyOf(vessel))
-      ..setFloat(80, glaze.r)
-      ..setFloat(81, glaze.g)
-      ..setFloat(82, glaze.b)
-      ..setFloat(83, bubbles.travelled.dx)
-      ..setFloat(84, bubbles.travelled.dy)
-      ..setImageSampler(0, isRainedOn ? rain.mapFor(size) : RainMap.dry)
+      ..setFloat(69, flame?.scorchDepth ?? 0)
+      ..setFloat(70, flame?.embers ?? 0)
+      ..setFloat(71, motion.drift.travelled.dx)
+      ..setFloat(72, motion.drift.travelled.dy)
+      ..setFloat(73, _Drawn.bodyOf(vessel))
+      ..setFloat(74, glaze.r)
+      ..setFloat(75, glaze.g)
+      ..setFloat(76, glaze.b)
+      ..setImageSampler(0, isRainedOn ? motion.rain.mapFor(size) : RainMap.dry)
       ..setImageSampler(1, maps ?? RainMap.dry);
-    if (!layered.hasGrowth) return;
-    shader
-      ..setFloat(85, isOverlay ? 0 : decals.moss)
-      ..setFloat(86, isOverlay ? 0 : decals.grass)
-      ..setFloat(87, isOverlay ? 0 : decals.flowers)
-      ..setFloat(88, petal.r)
-      ..setFloat(89, petal.g)
-      ..setFloat(90, petal.b);
   }
 
   /// Sets the shape, colour and light of the body, which both programs
@@ -671,12 +642,6 @@ class _SurfacePainter extends CustomPainter {
       ..setFloat(27, fill.blue);
   }
 
-  /// Growth is baked standing as it grew, so it does not swing about with
-  /// the device.
-  static Offset _growthGravity(PhysicalDecals decals) {
-    return decals.gravity ?? PhysicalLight.upright.value;
-  }
-
   @override
   bool shouldRepaint(_SurfacePainter oldDelegate) {
     return oldDelegate.color != color ||
@@ -685,10 +650,35 @@ class _SurfacePainter extends CustomPainter {
         oldDelegate.press != press ||
         oldDelegate.isOverlay != isOverlay ||
         oldDelegate.isFaceCovered != isFaceCovered ||
+        oldDelegate.textureAlignment != textureAlignment ||
         oldDelegate.direction != direction ||
         oldDelegate.tone != tone ||
         oldDelegate.world != world ||
         oldDelegate.pixelRatio != pixelRatio;
+  }
+}
+
+/// What moves on a surface by itself, each made only when it is first
+/// needed, so that a plain body carries none of it.
+class _Motion {
+  /// Which way the flames of a fire stream and how far they have.
+  late final drift = FlowDrift();
+
+  SurfaceRain? _rain;
+  SurfaceBake? _bake;
+
+  /// The drops of rain on the surface.
+  SurfaceRain get rain => _rain ??= SurfaceRain();
+
+  /// The layers of the body kept from frame to frame.
+  SurfaceBake get bake => _bake ??= SurfaceBake();
+
+  /// Whether any rain is on the surface, without making rain to find out.
+  bool get hasWater => _rain?.hasWater ?? false;
+
+  void dispose() {
+    _rain?.dispose();
+    _bake?.dispose();
   }
 }
 
@@ -703,7 +693,6 @@ class _Drawn {
   static const _burning = 2.0;
   static const _solid = 0.0;
   static const _glass = 1.0;
-  static const _holdingLiquid = 2.0;
 
   /// A glowing body is drawn as neon alone; otherwise fire is drawn round
   /// the lit body.
@@ -713,8 +702,7 @@ class _Drawn {
   }
 
   static double bodyOf(PhysicalVessel? vessel) {
-    if (vessel == null) return _solid;
-    return vessel.holdsLiquid ? _holdingLiquid : _glass;
+    return vessel == null ? _solid : _glass;
   }
 }
 

@@ -4,7 +4,6 @@ import 'package:kiss_color/kiss_color.dart';
 import 'package:kiss_physical/kiss_physical.dart';
 import 'package:kiss_physical_example/support/device_tilt.dart';
 import 'package:kiss_physical_example/support/kit_palette.dart';
-import 'package:kiss_physical_example/support/pointer_light.dart';
 import 'package:widgetbook/widgetbook.dart';
 
 /// What the kit addon lets the viewer change for every use case.

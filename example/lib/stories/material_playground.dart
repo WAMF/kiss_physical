@@ -37,8 +37,7 @@ class _Sample {
   static const startingTexture = 'granite';
   static const solid = 'solid';
   static const glass = 'glass';
-  static const glassHoldingLiquid = 'glass holding liquid';
-  static const vessels = [solid, glass, glassHoldingLiquid];
+  static const vessels = [solid, glass];
 
   static const wideStage = 760.0;
   static const slabHeight = 420.0;
@@ -142,19 +141,7 @@ class _BodyKnobs {
           initialValue: const PhysicalVessel.glass().opacity,
           max: 1,
         ),
-        liquidFill = context.knobs.double.slider(
-          label: 'Liquid fill',
-          initialValue: const PhysicalVessel.liquid().fill,
-          max: 1,
-        ),
-        liquidDensity = context.knobs.double.slider(
-          label: 'Liquid density',
-          initialValue: const PhysicalVessel.liquid().density,
-          max: 1,
-        ),
-        isVesselTinted = context.knobs.boolean(
-          label: 'Glass and liquid in the accent',
-        );
+        isVesselTinted = context.knobs.boolean(label: 'Glass in the accent');
 
   final String texture;
   final double scale;
@@ -162,8 +149,6 @@ class _BodyKnobs {
   final bool isTinted;
   final String vessel;
   final double glassOpacity;
-  final double liquidFill;
-  final double liquidDensity;
   final bool isVesselTinted;
 
   PhysicalTexture textureOn(Color accent) {
@@ -171,29 +156,14 @@ class _BodyKnobs {
     return isTinted ? made.tinted(accent) : made;
   }
 
-  PhysicalMaterial dress(
-    PhysicalMaterial material, {
-    required Color accent,
-    required Offset? down,
-  }) {
-    return switch (vessel) {
-      _Sample.glass => material.withVessel(
-          PhysicalVessel.glass(
-            color: isVesselTinted ? accent : const PhysicalVessel.glass().color,
-            opacity: glassOpacity,
-          ),
-        ),
-      _Sample.glassHoldingLiquid => material.withVessel(
-          PhysicalVessel.liquid(
-            color:
-                isVesselTinted ? accent : const PhysicalVessel.liquid().color,
-            fill: liquidFill,
-            density: liquidDensity,
-            gravity: down,
-          ),
-        ),
-      _ => material,
-    };
+  PhysicalMaterial dress(PhysicalMaterial material, {required Color accent}) {
+    if (vessel != _Sample.glass) return material;
+    return material.withVessel(
+      PhysicalVessel.glass(
+        color: isVesselTinted ? accent : const PhysicalVessel.glass().color,
+        opacity: glassOpacity,
+      ),
+    );
   }
 }
 
@@ -236,30 +206,15 @@ class _WearKnobs {
   }
 }
 
-/// Layer 3, growth: what has grown or settled on the body and stays put.
-class _GrowthKnobs {
-  _GrowthKnobs(BuildContext context)
-      : moss = context.knobs.double.slider(label: 'Moss', max: 1),
-        grass = context.knobs.double.slider(label: 'Grass', max: 1),
-        flowers = context.knobs.double.slider(label: 'Flowers', max: 1),
-        flowersInAccent = context.knobs.boolean(label: 'Flowers in the accent'),
-        dew = context.knobs.double.slider(label: 'Dew', max: 1);
+/// Layer 3, decals: what has settled on the body and stays put.
+class _DecalKnobs {
+  _DecalKnobs(BuildContext context)
+      : dew = context.knobs.double.slider(label: 'Dew', max: 1);
 
-  final double moss;
-  final double grass;
-  final double flowers;
-  final bool flowersInAccent;
   final double dew;
 
-  PhysicalDecals decals({required Color accent, required bool showHints}) {
-    return PhysicalDecals(
-      moss: moss,
-      grass: grass,
-      flowers: flowers,
-      flowerColor: flowersInAccent ? accent : PhysicalDecals.defaultFlowerColor,
-      dew: dew,
-      showHints: showHints,
-    );
+  PhysicalDecals decals({required bool showHints}) {
+    return PhysicalDecals(dew: dew, showHints: showHints);
   }
 }
 
@@ -403,8 +358,8 @@ Widget buildMaterialPlayground(BuildContext context) {
   final body = _BodyKnobs(context);
   KnobSection.start(context, '2 Wear');
   final wear = _WearKnobs(context);
-  KnobSection.start(context, '3 Growth');
-  final growth = _GrowthKnobs(context);
+  KnobSection.start(context, '3 Decals');
+  final settled = _DecalKnobs(context);
   KnobSection.start(context, '4 Effects');
   final effects = _EffectKnobs(context);
   KnobSection.start(context, 'World');
@@ -412,12 +367,12 @@ Widget buildMaterialPlayground(BuildContext context) {
 
   final color = shape.inAccent ? accent : colors.secondary.background;
   final texture = wear.wear(body.textureOn(accent));
-  final decals = growth.decals(accent: accent, showHints: world.showHints);
+  final decals = settled.decals(showHints: world.showHints);
 
   PhysicalMaterial layered(PhysicalMaterial finish) {
-    final grown = finish.withTexture(texture).withDecals(decals);
+    final settledOn = finish.withTexture(texture).withDecals(decals);
     return effects.dress(
-      body.dress(grown, accent: accent, down: world.down),
+      body.dress(settledOn, accent: accent),
       world,
       accent: accent,
     );

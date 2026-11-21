@@ -1,22 +1,23 @@
 ## 0.1.0
 
-- First release.
-- Light: `WorldLight`, `PhysicalLight`, `SkyLight`.
-- Surfaces: `PhysicalSurface`, `PhysicalPressable`, `PhysicalGlass`,
-  `PhysicalLens`, `PhysicalPegboard`, `PhysicalParallaxLayer`,
+First release.
+
+- **Light:** `WorldLight` follows the tilt of the device, `PointerLight`
+  follows the pointer on desktop and web, and `PhysicalLight.fixed` places
+  a light by hand. `SkyLight` gives the sun's and moon's lean and colour.
+- **Surfaces:** `PhysicalSurface`, `PhysicalPressable`, `PhysicalGlass`,
+  `PhysicalLens`, `PhysicalPegboard`, `PhysicalParallaxLayer` and
   `PhysicalDotGrid`.
-- Materials: `PhysicalMaterial` with textures, decals, vessels and effects.
-- Components: `PhysicalPillButton`, `PhysicalIconButton`, `PhysicalSlider`,
-  `PhysicalProgressBar`, `PhysicalCard`, `PhysicalDisc`, `PhysicalPill`,
-  `PhysicalPanel`, `PhysicalBottomPanel`.
-- Components need no set-up: they use the nearest `Layout` and
-  `SemanticColors` where present, and the standard layout and the theme
-  otherwise.
-- Pressable surfaces, buttons and the slider take keyboard focus, respond to
-  Enter, Space and the arrow keys, and show a focus ring.
-- The surface program is split by substance and compiled on first use;
-  `PhysicalShader.precacheFor` warms the programs for given materials.
-- `PhysicalCard.pill` and `PhysicalCard.disc` replace `PhysicalPill` and
-  `PhysicalDisc`; `PhysicalPanel.bottom` replaces `PhysicalBottomPanel`.
-- `PhysicalLight.fixed` places a light without a listenable.
-- `SkyLight.at` takes its latitude from the app.
+- **Materials:** `PhysicalMaterial` presets, with textures (woods, marbles,
+  stones, metals, plastic), wear, dew, glass, and
+  rain, flame and neon effects.
+- **Components:** `PhysicalCard`, `PhysicalPanel`, `PhysicalPillButton`,
+  `PhysicalIconButton`, `PhysicalSlider` and `PhysicalProgressBar`, with
+  keyboard focus, screen-reader labels and disabled states. Each keeps its
+  own colour whatever it is made of, and the slider and progress bar take
+  a material for each part.
+- **Shaders:** one program per substance, compiled on first use;
+  `PhysicalShader.precacheFor` warms the ones an app shows first and
+  `PhysicalShader.hasFailed` reports a device that cannot compile them.
+- **Accessibility:** reduced motion rests the light and holds flames, rain
+  and flicker still.

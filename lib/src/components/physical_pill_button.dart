@@ -28,7 +28,8 @@ class PhysicalPillButton extends StatelessWidget {
   /// The label of the button.
   final Widget child;
 
-  /// How the pill is shaped and how it catches the light.
+  /// How the pill is shaped and how it catches the light. A texture on it
+  /// is tinted to the button's colour.
   final PhysicalMaterial material;
 
   /// The smallest the button may be, or null for the size the theme gives.

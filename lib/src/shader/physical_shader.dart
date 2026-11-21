@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:kiss_physical/src/material/physical_material.dart';
 import 'package:kiss_physical/src/shader/shader_programs.dart';
 
@@ -7,6 +8,12 @@ import 'package:kiss_physical/src/shader/shader_programs.dart';
 /// ready that body paints as a flat shape in its base colour. Compiling
 /// ahead of the first frame avoids that moment.
 abstract final class PhysicalShader {
+  /// Whether any program has failed to compile on this device. The bodies
+  /// it would have drawn paint flat in their base colour, so an app may
+  /// want to fall back to a plainer look. The failure itself is reported
+  /// through `FlutterError.onError`.
+  static ValueListenable<bool> get hasFailed => ShaderPrograms.failed;
+
   /// Compiles the programs nearly every app uses: plain lit bodies, the
   /// pegboard, the dot grid and the lens.
   static Future<void> precache() {
