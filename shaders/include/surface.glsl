@@ -33,6 +33,11 @@ precision highp float;
 
 uniform vec2 uSize;
 // Corner radii: top-left, top-right, bottom-right, bottom-left.
+//
+// A body whose outline is lettering has no corners, and is given what it
+// needs to read uGlyphs here in their place. xy: where the map's top left
+// corner lies, from the body's own. z: how far the lettering in the map is
+// blurred. w: how far apart the two heights a slope is taken from are read.
 uniform vec4 uRadii;
 // Straight-alpha sRGB base colour.
 uniform vec4 uColor;
@@ -115,6 +120,13 @@ uniform sampler2D uRainMap;
 // tint and half its diffuse share. Bottom right, its hollow and porosity
 // hints.
 uniform sampler2D uBaked;
+#ifdef OUTLINE_GLYPHS
+// Lettering for an outline, in a map that reaches past the body on every
+// side. Red holds the letters as they are, which is where the body is.
+// Green holds them blurred, which rises from nothing outside a stroke,
+// through a half at its edge, to one deep inside.
+uniform sampler2D uGlyphs;
+#endif
 
 out vec4 fragColor;
 
@@ -632,6 +644,48 @@ vec4 rainAt(vec2 position, float ripple, out vec2 trailLean) {
 // change as a crease. So the two edges are blended into each other there,
 // over a wedge that narrows to nothing at the edges themselves, where the
 // distance stays exact.
+#ifdef OUTLINE_GLYPHS
+// Fits the inverse of the error function, which undoes a blur.
+const float ERF_FIT = 0.147;
+// The furthest from its edge a blurred stroke can still be told to be.
+const float GLYPH_DEPTH = 0.98;
+// Keeps the facing of a shoulder steady where the slope dies away, along
+// the middle of a stroke.
+const float LEVEL_SLOPE = 0.04;
+
+vec4 glyphsAt(vec2 p, vec2 halfSize) {
+  vec2 uv = clamp((p + halfSize - uRadii.xy) / (uSize - 2.0 * uRadii.xy),
+                  vec2(0.0), vec2(1.0));
+#ifdef IMPELLER_TARGET_OPENGLES
+  uv.y = 1.0 - uv.y;
+#endif
+  return texture(uGlyphs, uv);
+}
+
+// How far from the edge of a stroke a point is where the blurred lettering
+// has the value [soft]: a blurred edge is an error function of the
+// distance to it, so its inverse gives the distance back.
+float glyphDistance(float soft) {
+  float x = clamp(2.0 * soft - 1.0, -GLYPH_DEPTH, GLYPH_DEPTH);
+  float logged = log(1.0 - x * x);
+  float term = 2.0 / (PI * ERF_FIT) + 0.5 * logged;
+  float inverse = sign(x) * sqrt(sqrt(term * term - logged / ERF_FIT) - term);
+  return -inverse * uRadii.z * 1.41421356;
+}
+
+// The lettering standing in for the rounded box: the signed distance to
+// the edge of the nearest stroke in x and the way that edge faces in yz.
+vec3 roundedBox(vec2 p, vec2 halfSize) {
+  float apart = uRadii.w;
+  vec2 rise = vec2(
+      glyphsAt(p + vec2(apart, 0.0), halfSize).g -
+          glyphsAt(p - vec2(apart, 0.0), halfSize).g,
+      glyphsAt(p + vec2(0.0, apart), halfSize).g -
+          glyphsAt(p - vec2(0.0, apart), halfSize).g);
+  return vec3(glyphDistance(glyphsAt(p, halfSize).g),
+              -rise / (length(rise) + LEVEL_SLOPE));
+}
+#else
 vec3 roundedBox(vec2 p, vec2 halfSize) {
   float radius = p.x < 0.0
       ? (p.y < 0.0 ? uRadii.x : uRadii.w)
@@ -653,6 +707,7 @@ vec3 roundedBox(vec2 p, vec2 halfSize) {
   vec2 gradient = normalize(vec2(nearSide, 1.0 - nearSide));
   return vec3(-nearest - radius, gradient * sign(p));
 }
+#endif
 
 // A tube of glowing gas: white-hot along its middle, its own colour at the
 // glass, with a halo that falls away outside it. [distance] is the signed
@@ -711,6 +766,11 @@ float firelight(vec2 p, vec2 side, float time) {
 
 // How far a point is from the body's outline: what roundedBox gives in x,
 // without working out which way the outline faces.
+#ifdef OUTLINE_GLYPHS
+float boxDistance(vec2 p, vec2 halfSize) {
+  return glyphDistance(glyphsAt(p, halfSize).g);
+}
+#else
 float boxDistance(vec2 p, vec2 halfSize) {
   float radius = p.x < 0.0
       ? (p.y < 0.0 ? uRadii.x : uRadii.w)
@@ -729,6 +789,7 @@ float boxDistance(vec2 p, vec2 halfSize) {
       wedge * nearSide * (1.0 - nearSide);
   return -nearest - radius;
 }
+#endif
 
 // How far a point is from the column a body sweeps out as it is carried
 // [reach] pixels against [down]: everything a flame rooted on the body can
@@ -934,7 +995,11 @@ void main() {
   float overlay = uForm.w;
 
   vec3 box = roundedBox(p, halfSize);
+#ifdef OUTLINE_GLYPHS
+  float coverage = glyphsAt(p, halfSize).r;
+#else
   float coverage = clamp(0.5 - box.x * pixelRatio, 0.0, 1.0);
+#endif
 
   float shoulder = 1.0 - clamp(-box.x / bevel, 0.0, 1.0);
   float slope = min(shoulder * shoulder, MAX_BEVEL_SLOPE);
@@ -1295,10 +1360,15 @@ void main() {
   }
 
   vec2 shadowOffset = -light.xy / max(light.z, 0.3) * elevation;
+#ifdef OUTLINE_GLYPHS
+  float shadow = shadowStrength * uColor.a * step(0.001, elevation) *
+      smoothstep(0.0, 1.0, glyphsAt(p - shadowOffset, halfSize).g);
+#else
   float softness = elevation * 1.2 + 1.0;
   float shadowDistance = roundedBox(p - shadowOffset, halfSize).x;
   float shadow = shadowStrength * uColor.a * step(0.001, elevation) *
       (1.0 - smoothstep(-softness, softness, shadowDistance));
+#endif
 
   fragColor = surface + vec4(0.0, 0.0, 0.0, shadow) * (1.0 - surface.a) +
       fire * (1.0 - 0.85 * surface.a);

@@ -11,6 +11,9 @@ First release.
 - **Materials:** `PhysicalMaterial` presets, with textures (woods, marbles,
   stones, metals, plastic), wear, dew, glass, and
   rain, flame and neon effects.
+- **Lettering:** `PhysicalText` makes headings and numerals of a material:
+  every stroke has a lit shoulder and casts a shadow, and takes the
+  textures, wear and dew a surface does.
 - **Components:** `PhysicalCard`, `PhysicalPanel`, `PhysicalPillButton`,
   `PhysicalIconButton`, `PhysicalSlider` and `PhysicalProgressBar`, with
   keyboard focus, screen-reader labels and disabled states. Each keeps its

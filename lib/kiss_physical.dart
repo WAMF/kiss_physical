@@ -27,3 +27,4 @@ export 'src/surface/physical_parallax_layer.dart';
 export 'src/surface/physical_pegboard.dart' show PegboardGrid, PhysicalPegboard;
 export 'src/surface/physical_pressable.dart' hide PhysicalButtonBackground;
 export 'src/surface/physical_surface.dart';
+export 'src/text/physical_text.dart';
