@@ -256,7 +256,7 @@ two shift in opposite directions.
 
 ## Controls and panels
 
-![A slider, a progress bar, pill buttons and an icon button on a panel](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/controls.jpg)
+![The same slider, progress bar and buttons three times: in plastic, in brass on oak, and in steel on marble](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/controls.jpg)
 
 | Widget | What it is |
 |---|---|

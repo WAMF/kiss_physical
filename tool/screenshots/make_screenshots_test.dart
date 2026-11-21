@@ -48,6 +48,129 @@ abstract final class _Fonts {
   }
 }
 
+/// What one panel of controls is made of, and the colour of each part.
+enum _Made {
+  ofPlastic(
+    panel: PhysicalTexture.none,
+    panelColor: _Shot.panel,
+    fittings: PhysicalTexture.none,
+    fittingsColor: _Shot.accent,
+    labelColor: _Shot.paper,
+    track: PhysicalTexture.none,
+    trackColor: _Shot.background,
+  ),
+  ofOakAndBrass(
+    panel: PhysicalTexture.oak,
+    panelColor: Color(0xFF7A5230),
+    fittings: PhysicalTexture.brass,
+    fittingsColor: Color(0xFFC9A24B),
+    labelColor: Color(0xFF2B1D0E),
+    track: PhysicalTexture.walnut,
+    trackColor: Color(0xFF3A2414),
+  ),
+  ofMarbleAndSteel(
+    panel: PhysicalTexture.carrara,
+    panelColor: Color(0xFFE9E7E2),
+    fittings: PhysicalTexture.stainlessSteel,
+    fittingsColor: Color(0xFFAEB4BC),
+    labelColor: Color(0xFF1A1D1C),
+    track: PhysicalTexture.granite,
+    trackColor: Color(0xFF6E7075),
+  );
+
+  const _Made({
+    required this.panel,
+    required this.panelColor,
+    required this.fittings,
+    required this.fittingsColor,
+    required this.labelColor,
+    required this.track,
+    required this.trackColor,
+  });
+
+  /// What the panel is made of.
+  final PhysicalTexture panel;
+  final Color panelColor;
+
+  /// What the buttons, the bead and the bar are made of.
+  final PhysicalTexture fittings;
+  final Color fittingsColor;
+  final Color labelColor;
+
+  /// What the recessed tracks are made of.
+  final PhysicalTexture track;
+  final Color trackColor;
+}
+
+/// A slider, a progress bar and two buttons on a panel, all [made] of the
+/// same few substances.
+class _Controls extends StatelessWidget {
+  const _Controls(this.made);
+
+  static const _slid = 0.6;
+  static const _filled = 0.4;
+  static const _buttonDiameter = 48.0;
+
+  final _Made made;
+
+  @override
+  Widget build(BuildContext context) {
+    final bar = PhysicalMaterial.gloss.withTexture(made.fittings);
+    final track = PhysicalMaterial.well.withTexture(made.track);
+    return PhysicalPanel(
+      color: made.panelColor,
+      texture: made.panel,
+      isRaised: true,
+      child: Padding(
+        padding: const EdgeInsets.all(_Shot.gap),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: _Shot.gap,
+          children: [
+            PhysicalSlider(
+              value: _slid,
+              onChanged: (_) {},
+              barColor: made.fittingsColor,
+              trackColor: made.trackColor,
+              thumbColor: made.fittingsColor,
+              barMaterial: bar,
+              trackMaterial: track,
+              thumbMaterial: PhysicalMaterial.bead.withTexture(made.fittings),
+            ),
+            PhysicalProgressBar(
+              fraction: _filled,
+              barColor: made.fittingsColor,
+              trackColor: made.trackColor,
+              barMaterial: bar,
+              trackMaterial: track,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                PhysicalPillButton(
+                  color: made.fittingsColor,
+                  foregroundColor: made.labelColor,
+                  material: bar,
+                  onPressed: () {},
+                  child: const Text('Save'),
+                ),
+                PhysicalIconButton(
+                  diameter: _buttonDiameter,
+                  color: made.fittingsColor,
+                  material: PhysicalMaterial.bead.withTexture(made.fittings),
+                  tooltip: 'Add',
+                  onPressed: () {},
+                  icon: Icon(Icons.add, color: made.labelColor),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 PhysicalMaterial _of(PhysicalTexture texture) {
   return PhysicalMaterial.satin.withTexture(texture);
 }
@@ -136,21 +259,24 @@ void main() {
         columns: 3,
         bodies: [
           _slab(
-            _of(PhysicalTexture.slate.imperfect(0.7))
-                .withEffect(const PhysicalEffect.rain(intensity: 0.9)),
+            _of(
+              PhysicalTexture.slate.imperfect(0.7),
+            ).withEffect(const PhysicalEffect.rain(intensity: 0.9)),
           ),
           _slab(
-            _of(PhysicalTexture.oak.aged(0.7).imperfect(0.6)).withEffect(
-              const PhysicalEffect.flame(scorch: 0.6, embers: 0.7),
-            ),
+            _of(
+              PhysicalTexture.oak.aged(0.7).imperfect(0.6),
+            ).withEffect(const PhysicalEffect.flame(scorch: 0.6, embers: 0.7)),
           ),
           _slab(
-            _of(PhysicalTexture.copper.aged(1).dented(0.4))
-                .withDecals(const PhysicalDecals(dew: 0.7)),
+            _of(
+              PhysicalTexture.copper.aged(1).dented(0.4),
+            ).withDecals(const PhysicalDecals(dew: 0.7)),
           ),
           _slab(
-            _of(PhysicalTexture.travertine.aged(0.5).dented(0.9))
-                .withDecals(const PhysicalDecals(dew: 0.3)),
+            _of(
+              PhysicalTexture.travertine.aged(0.5).dented(0.9),
+            ).withDecals(const PhysicalDecals(dew: 0.3)),
           ),
           _slab(
             PhysicalMaterial.gloss.withEffect(
@@ -192,58 +318,14 @@ void main() {
     await _record(
       tester,
       'controls',
-      Center(
-        child: SizedBox(
-          width: 420,
-          child: PhysicalPanel(
-            color: _Shot.panel,
-            isRaised: true,
-            child: Padding(
-              padding: _Shot.padding,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: _Shot.gap,
-                children: [
-                  PhysicalSlider(
-                    value: 0.6,
-                    onChanged: (_) {},
-                    barColor: _Shot.accent,
-                    trackColor: _Shot.background,
-                    thumbColor: _Shot.paper,
-                  ),
-                  const PhysicalProgressBar(
-                    fraction: 0.4,
-                    barColor: _Shot.accent,
-                    trackColor: _Shot.background,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      PhysicalPillButton(
-                        color: _Shot.accent,
-                        foregroundColor: _Shot.paper,
-                        onPressed: () {},
-                        child: const Text('Save'),
-                      ),
-                      PhysicalPillButton(
-                        color: _Shot.paper,
-                        foregroundColor: _Shot.background,
-                        onPressed: () {},
-                        child: const Text('Cancel'),
-                      ),
-                      PhysicalIconButton(
-                        diameter: 48,
-                        color: _Shot.accent,
-                        tooltip: 'Add',
-                        onPressed: () {},
-                        icon: const Icon(Icons.add, color: _Shot.paper),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+      const Center(
+        child: Row(
+          spacing: _Shot.gap,
+          children: [
+            Expanded(child: _Controls(_Made.ofPlastic)),
+            Expanded(child: _Controls(_Made.ofOakAndBrass)),
+            Expanded(child: _Controls(_Made.ofMarbleAndSteel)),
+          ],
         ),
       ),
     );

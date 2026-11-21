@@ -11,7 +11,7 @@ screenshots:
     path: screenshots/showpieces.jpg
   - description: Wood, marble, stone and metal textures under one light.
     path: screenshots/textures.jpg
-  - description: A slider, progress bar and buttons on a raised panel.
+  - description: The same controls in plastic, in brass on oak and in steel on marble.
     path: screenshots/controls.jpg
 topics:
   - ui
