@@ -356,7 +356,11 @@ class _LetteringPainter extends CustomPainter {
       ..setFloat(44, texture.scratchDirection)
       ..setFloat(45, texture.scratchSpread)
       ..setFloat(46, texture.scratchClustering)
-      ..setFloat(47, material.decals.dew)
+      ..setFloat(47, material.decals.dew);
+    for (var at = _Glyph.firstUnused; at < _Glyph.floatCount; at++) {
+      shader.setFloat(at, 0);
+    }
+    shader
       ..setImageSampler(0, RainMap.dry)
       ..setImageSampler(1, RainMap.dry)
       ..setImageSampler(2, glyphs);
@@ -376,6 +380,14 @@ class _LetteringPainter extends CustomPainter {
 }
 
 class _Glyph {
+  /// The first of the surface program's numbers that lettering has no use
+  /// for: its rain, effects, baking and vessel. Each is set to nothing by
+  /// hand, since not every platform starts a shader's numbers at nothing.
+  static const firstUnused = 48;
+
+  /// How many numbers the surface program takes in all.
+  static const floatCount = 77;
+
   /// Lettering is not domed across its whole block as a body is across its
   /// face.
   static const crown = 0.0;
