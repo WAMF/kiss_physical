@@ -1,7 +1,8 @@
 # kiss_physical
 
 A physically lit UI kit for Flutter. Cards, buttons, sliders and panels are
-solid bodies with bevels, highlights and cast shadows, drawn by fragment
+solid bodies made of real materials: wood, stone, marble, metal, plastic and
+glass, with bevels, highlights and cast shadows. They are drawn by fragment
 shaders and lit by one light that stays put in the world while the device
 turns beneath it.
 
@@ -13,10 +14,12 @@ follows the tilt of the device instead.
 
 - **One light.** A `WorldLight` at the root follows the device's tilt and,
   optionally, the sun and moon through the day. Every surface below reads it.
-- **Materials.** A `PhysicalMaterial` describes a body's shape and finish:
-  satin plastic, gloss pills, beads, wells, glass. Layer a texture (woods,
-  marbles, stones, metals), wear, dew, glass and effects (rain, flame,
-  neon) on top.
+- **Materials.** A `PhysicalMaterial` is a finish (satin, gloss, bead, well,
+  glass) over a substance (twelve woods, five marbles, four stones, six
+  metals, plastic). Wear ages, scratches and dents it; dew, rain, flame and
+  neon play over it.
+- **Components made of them.** Buttons, cards, panels, a slider and a
+  progress bar can each be made of any material and keep their own colour.
 - **Depth layers.** A pegboard background lies beneath the content and a
   parallax layer floats above it, so tilting the device shows real depth.
 - **Cheap to run.** Each body is one analytic shader pass in its own layer.
@@ -125,7 +128,13 @@ refracts whatever is beneath it at the rim.
 
 ## Materials
 
-Start from a preset:
+A material is built in layers: a finish, what the body is made of, what has
+happened to it, and what is happening to it now.
+
+### Finish
+
+Start from a preset, which gives the body its shape and how it catches the
+light:
 
 | Preset | Suited to |
 |---|---|
@@ -139,26 +148,59 @@ Start from a preset:
 | `peg` | Pegboard sockets |
 | `panel`, `floatingPanel` | Panels flush with, or raised above, a background |
 
-Then layer on what the body is made of, what has happened to it and what is
-happening to it now:
+### Substance
+
+![Walnut, oak, zebrano, Carrara marble, Nero Marquina marble, granite, brass and stainless steel](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/textures.jpg)
+
+`withTexture` says what the body is made of:
+
+| Family | Textures |
+|---|---|
+| Woods | `walnut`, `oak`, `smokedOak`, `mahogany`, `teak`, `rosewood`, `macassarEbony`, `maple`, `ash`, `cherry`, `wenge`, `zebrano` |
+| Marbles | `carrara`, `calacattaGold`, `neroMarquina`, `verdeAlpi`, `emperador` |
+| Stones | `travertine`, `granite`, `slate`, `concrete` |
+| Metals | `brass`, `bronze`, `copper`, `stainlessSteel`, `blackenedSteel`, `polishedNickel` |
+| Plastic | `plastic` |
+
+```dart
+final brushed = PhysicalMaterial.satin
+    .withTexture(PhysicalTexture.stainlessSteel);
+```
+
+A texture comes in its natural colour. `tinted` gives it another, keeping
+its grain, veins or flecks as dark against the new colour as they
+naturally are; `scaled` and `faded` change how large and how strong the
+figure is.
+
+### Wear
+
+A texture can be aged, scratched and dented, or all three at once with
+`imperfect`. Metal dulls and blooms with patina as it ages; wood and stone
+mellow and stain.
 
 ```dart
 final weathered = PhysicalMaterial.satin
+    .withTexture(PhysicalTexture.copper.aged(0.8).scratched(amount: 0.4));
+```
+
+### Dew, glass and effects
+
+```dart
+final dewy = PhysicalMaterial.satin
     .withTexture(PhysicalTexture.granite.imperfect(0.7))
     .withDecals(const PhysicalDecals(dew: 0.4));
-
-final brushed = PhysicalMaterial.satin
-    .withTexture(PhysicalTexture.stainlessSteel);
 
 final burning = PhysicalMaterial.gloss
     .withTexture(PhysicalTexture.walnut)
     .withEffect(const PhysicalEffect.flame());
 
-final jar = PhysicalMaterial.gloss
+final pane = PhysicalMaterial.gloss
     .withVessel(const PhysicalVessel.glass());
 ```
 
-Flames and rain follow real gravity as the device is tilted.
+The effects are rain, flame and neon. Rain runs and flames rise by real
+gravity as the device is tilted, and water beads or soaks in according to
+how rough the finish is.
 
 ## Light
 
@@ -214,6 +256,8 @@ two shift in opposite directions.
 
 ## Controls and panels
 
+![A slider, a progress bar, pill buttons and an icon button on a panel](https://raw.githubusercontent.com/WAMF/kiss_physical/main/screenshots/controls.jpg)
+
 | Widget | What it is |
 |---|---|
 | `PhysicalPillButton` | A Material button drawn as a glossy pill |
@@ -244,13 +288,24 @@ PhysicalIconButton(
 ```
 
 Every component takes its content as `child` and its colour as `color`.
+Buttons take `onPressed`; `PhysicalPressable`, a surface that can be tapped,
+takes `onTap`. A button or slider with no callback is frosted over and
+inert.
 
-A component keeps its own colour whatever it is made of: its texture is
-tinted to that colour, and the grain, veins or flecks stay as dark against
-it as they naturally are. The slider and the progress bar take a material
-for each part.
+### What a component is made of
+
+Buttons and cards take a `material`, and a panel, whose finish is its
+own, takes a `texture`. Each keeps its own colour whatever it is made of:
+the texture is tinted to the component's colour. The slider and the
+progress bar take a material for each part.
 
 ```dart
+PhysicalCard(
+  color: slate,
+  material: PhysicalMaterial.satin.withTexture(PhysicalTexture.oak),
+  child: content,
+)
+
 PhysicalSlider(
   value: volume,
   onChanged: setVolume,
@@ -267,13 +322,17 @@ A texture is pinned to the centre of its body. On a body that grows from
 one side, pin it there with `PhysicalSurface.textureAlignment` and the
 grain stays put while more of it is uncovered, as it does on the bar of a
 progress bar.
-Buttons take `onPressed`; `PhysicalPressable`, a surface that can be tapped,
-takes `onTap`. A button or slider with no callback is frosted over and
-inert.
+
+### Keyboard
 
 Pressable surfaces, buttons and the slider can be reached with Tab and show
 a ring while they have keyboard focus. Enter and Space press a button; the
 arrow keys move the slider a step.
+
+### Theme
+
+To give every Material button in an app the physical look, set the style
+in its theme:
 
 ```dart
 MaterialApp(
@@ -293,8 +352,9 @@ MaterialApp(
 [`example/`](example) is a Widgetbook,
 [hosted here](https://wamf.github.io/kiss_physical/), with every component, a
 gallery of the materials, a playground with a knob for each material
-parameter, and controls for the light: its position, the hour of the day,
-and whether it follows the device.
+parameter, a "Made of" knob on every control, card and panel, and controls
+for the light: its position, the hour of the day, and whether it follows
+the device.
 
 ```bash
 cd example

@@ -41,7 +41,8 @@ Fragment shaders need the default (CanvasKit or Skwasm) web renderer.
   the sun and moon through a day.
 - **Depth**: the pegboard beneath the content and a menu floating above it.
 - **Controls**: pill buttons, Material buttons in the physical style, icon
-  buttons, the slider and the progress bar.
+  buttons, the slider and the progress bar. Each has a **Made of** knob,
+  and the slider and progress bar have one for each part.
 
 The **Addons** tab has a **Light and colour** group that applies to every use
 case: the accent colour, the hour of the day, where the light hangs, whether
