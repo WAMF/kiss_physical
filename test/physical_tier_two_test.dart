@@ -179,7 +179,8 @@ void main() {
       expect(
         _thumbLeft(tester, control),
         lessThan(
-            tester.getCenter(control).dx - PhysicalSwitch.defaultHeight / 2,),
+          tester.getCenter(control).dx - PhysicalSwitch.defaultHeight / 2,
+        ),
       );
     });
 
