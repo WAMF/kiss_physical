@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +13,43 @@ class _Sample {
   static const steps = 10;
   static const start = 0.5;
   static const oneStep = 1 / steps;
+  static const nearly = 0.01;
+  static const visibleDip = 0.2;
+}
+
+Widget _pressable({
+  required VoidCallback? onTap,
+  PhysicalMaterial material = PhysicalMaterial.gloss,
+  VoidCallback? onHold,
+  bool repeatsWhileHeld = false,
+}) {
+  return PhysicalPressable(
+    onTap: onTap,
+    onHold: onHold,
+    repeatsWhileHeld: repeatsWhileHeld,
+    color: _Sample.color,
+    material: material,
+    child: const SizedBox.square(dimension: _Sample.diameter),
+  );
+}
+
+/// The haptics asked of the platform from now on, by name.
+List<Object?> _hapticsOf(WidgetTester tester) {
+  final asked = <Object?>[];
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (call) async {
+      if (call.method == 'HapticFeedback.vibrate') asked.add(call.arguments);
+      return null;
+    },
+  );
+  addTearDown(
+    () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    ),
+  );
+  return asked;
 }
 
 Widget _app(Widget child) {
@@ -77,6 +117,158 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(presses, 2);
+    });
+
+    testWidgets('sinks under the finger and comes back to rest', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(_pressable(onTap: () {})));
+      final surface = _surfaceIn(tester, find.byType(PhysicalPressable));
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(PhysicalPressable)),
+      );
+      await tester.pumpAndSettle();
+      expect(surface.press!.value, closeTo(1, _Sample.nearly));
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(surface.press!.value, closeTo(0, _Sample.nearly));
+    });
+
+    testWidgets('a quick tap dips and springs past rest, as plastic does', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(_pressable(onTap: () {})));
+      final press = _surfaceIn(tester, find.byType(PhysicalPressable)).press!;
+      var deepest = 0.0;
+      var highest = 0.0;
+      press.addListener(() {
+        deepest = math.max(deepest, press.value);
+        highest = math.min(highest, press.value);
+      });
+
+      await tester.tap(find.byType(PhysicalPressable));
+      await tester.pumpAndSettle();
+
+      expect(deepest, greaterThan(_Sample.visibleDip));
+      expect(highest, lessThan(0));
+    });
+
+    testWidgets('stone comes back to rest without springing past it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(
+          _pressable(
+            onTap: () {},
+            material: PhysicalMaterial.gloss.withTexture(
+              PhysicalTexture.granite,
+            ),
+          ),
+        ),
+      );
+      final press = _surfaceIn(tester, find.byType(PhysicalPressable)).press!;
+      var highest = 0.0;
+      press.addListener(() => highest = math.min(highest, press.value));
+
+      await tester.tap(find.byType(PhysicalPressable));
+      await tester.pumpAndSettle();
+
+      expect(highest, greaterThan(-_Sample.nearly));
+    });
+
+    testWidgets('taps the hand as it goes down, as heavily as it is made', (
+      tester,
+    ) async {
+      final taps = _hapticsOf(tester);
+      await tester.pumpWidget(
+        _app(
+          _pressable(
+            onTap: () {},
+            material: PhysicalMaterial.gloss.withTexture(
+              PhysicalTexture.granite,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(PhysicalPressable));
+      await tester.pumpAndSettle();
+
+      expect(taps, ['HapticFeedbackType.heavyImpact']);
+    });
+
+    testWidgets('stays quiet where haptics are turned off', (tester) async {
+      final taps = _hapticsOf(tester);
+      await tester.pumpWidget(
+        _app(
+            PhysicalHaptics(isEnabled: false, child: _pressable(onTap: () {})),),
+      );
+
+      await tester.tap(find.byType(PhysicalPressable));
+      await tester.pumpAndSettle();
+
+      expect(taps, isEmpty);
+    });
+
+    testWidgets('repeats its tap while held and adds none on letting go', (
+      tester,
+    ) async {
+      var presses = 0;
+      await tester.pumpWidget(
+        _app(_pressable(onTap: () => presses++, repeatsWhileHeld: true)),
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(PhysicalPressable)),
+      );
+      await tester.pump(HoldRepeater.defaultDelay);
+      await tester.pump(HoldRepeater.defaultSlowest);
+      final whileHeld = presses;
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(whileHeld, greaterThan(1));
+      expect(presses, whileHeld);
+    });
+
+    testWidgets('a quick tap on a repeating surface counts once', (
+      tester,
+    ) async {
+      var presses = 0;
+      await tester.pumpWidget(
+        _app(_pressable(onTap: () => presses++, repeatsWhileHeld: true)),
+      );
+
+      await tester.tap(find.byType(PhysicalPressable));
+      await tester.pumpAndSettle();
+
+      expect(presses, 1);
+    });
+
+    testWidgets('calls onHold when held and stays down until let go', (
+      tester,
+    ) async {
+      var holds = 0;
+      var presses = 0;
+      await tester.pumpWidget(
+        _app(_pressable(onTap: () => presses++, onHold: () => holds++)),
+      );
+      final press = _surfaceIn(tester, find.byType(PhysicalPressable)).press!;
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(PhysicalPressable)),
+      );
+      await tester.pump(kLongPressTimeout);
+      await tester.pumpAndSettle();
+      expect(holds, 1);
+      expect(press.value, closeTo(1, _Sample.nearly));
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(presses, 0);
+      expect(press.value, closeTo(0, _Sample.nearly));
     });
 
     testWidgets('cannot take focus when it has nothing to do', (tester) async {

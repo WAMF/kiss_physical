@@ -15,6 +15,7 @@ class PhysicalIconButton extends StatelessWidget {
     required this.onPressed,
     this.color,
     this.material = PhysicalMaterial.bead,
+    this.repeatsWhileHeld = false,
     this.semanticLabel,
     this.tooltip,
     super.key,
@@ -37,6 +38,11 @@ class PhysicalIconButton extends StatelessWidget {
   /// How the button is shaped and how it catches the light.
   final PhysicalMaterial material;
 
+  /// Whether [onPressed] is called again and again, faster and faster, for
+  /// as long as the button is held. Suited to the ends of a stepper. The
+  /// [tooltip] then shows under a resting pointer only.
+  final bool repeatsWhileHeld;
+
   /// What the button is called by screen readers. An icon alone says
   /// nothing to them, so give this or a [tooltip].
   final String? semanticLabel;
@@ -57,6 +63,7 @@ class PhysicalIconButton extends StatelessWidget {
         onTap: onPressed,
         color: shown,
         material: isEnabled ? made : DisabledLook.flattened(made),
+        repeatsWhileHeld: repeatsWhileHeld,
         semanticLabel: semanticLabel ?? tooltip,
         child: Center(
           child: isEnabled
@@ -69,6 +76,7 @@ class PhysicalIconButton extends StatelessWidget {
     if (message == null) return button;
     return Tooltip(
       message: message,
+      triggerMode: repeatsWhileHeld ? TooltipTriggerMode.manual : null,
       excludeFromSemantics: true,
       child: button,
     );
