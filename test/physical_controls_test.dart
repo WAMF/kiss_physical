@@ -203,7 +203,8 @@ void main() {
       final taps = _hapticsOf(tester);
       await tester.pumpWidget(
         _app(
-            PhysicalHaptics(isEnabled: false, child: _pressable(onTap: () {})),),
+          PhysicalHaptics(isEnabled: false, child: _pressable(onTap: () {})),
+        ),
       );
 
       await tester.tap(find.byType(PhysicalPressable));
