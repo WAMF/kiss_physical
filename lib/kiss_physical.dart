@@ -8,12 +8,15 @@ library;
 
 export 'src/components/physical_card.dart';
 export 'src/components/physical_icon_button.dart';
+export 'src/components/physical_pager.dart';
 export 'src/components/physical_panel.dart';
 export 'src/components/physical_pill_button.dart';
 export 'src/components/physical_progress_bar.dart';
 export 'src/components/physical_segmented_control.dart';
+export 'src/components/physical_sheet.dart';
 export 'src/components/physical_slider.dart';
 export 'src/components/physical_spinner.dart';
+export 'src/components/physical_swipe_row.dart';
 export 'src/components/physical_switch.dart';
 export 'src/components/physical_text_field.dart';
 export 'src/light/physical_light.dart';

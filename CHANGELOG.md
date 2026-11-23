@@ -28,6 +28,10 @@ First release.
   keyboard focus, screen-reader labels and disabled states. Each keeps its
   own colour whatever it is made of, and the slider and progress bar take
   a material for each part.
+- **Gestures:** `PhysicalSheet` is dragged or thrown down out of the way,
+  `PhysicalSwipeRow` slides aside to show the actions behind it, and
+  `PhysicalPager` is thrown from page to page. Each settles on a spring
+  and gives a little where it cannot go.
 - **Shaders:** one program per substance, compiled on first use;
   `PhysicalShader.precacheFor` warms the ones an app shows first and
   `PhysicalShader.hasFailed` reports a device that cannot compile them.
