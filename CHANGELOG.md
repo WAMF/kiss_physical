@@ -22,7 +22,9 @@ First release.
   and `PhysicalMotion` (throws, stops and resistance past an edge) are
   there for gestures to come.
 - **Components:** `PhysicalCard`, `PhysicalPanel`, `PhysicalPillButton`,
-  `PhysicalIconButton`, `PhysicalSlider` and `PhysicalProgressBar`, with
+  `PhysicalIconButton`, `PhysicalSwitch`, `PhysicalSegmentedControl`,
+  `PhysicalTextField`, `PhysicalSpinner`, `PhysicalSlider` and
+  `PhysicalProgressBar`, with
   keyboard focus, screen-reader labels and disabled states. Each keeps its
   own colour whatever it is made of, and the slider and progress bar take
   a material for each part.
