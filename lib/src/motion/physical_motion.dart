@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/physics.dart';
+
 /// The arithmetic of things that are thrown, dragged past an edge and left
 /// to settle, shared by every gesture in the kit.
 abstract final class PhysicalMotion {
@@ -71,6 +73,18 @@ abstract final class PhysicalMotion {
     return value;
   }
 
+  /// The spring that carries a sheet, a row or a page to where it settles:
+  /// quick, and with only the slightest give when it arrives.
+  static final carry = SpringDescription.withDampingRatio(
+    mass: _Carry.mass,
+    stiffness: _Carry.stiffness,
+    ratio: _Carry.ratio,
+  );
+
+  /// How close to where it is going, and how nearly still, something
+  /// measured in logical pixels must be to count as settled.
+  static const settledInPixels = Tolerance(distance: 0.5, velocity: 5);
+
   /// The share of its speed a thrown body keeps each millisecond.
   static const defaultGlide = 0.998;
 
@@ -81,4 +95,10 @@ abstract final class PhysicalMotion {
 class _Throw {
   static const millisecondsPerSecond = 1000;
   static const smallestExtent = 1.0;
+}
+
+class _Carry {
+  static const mass = 1.0;
+  static const stiffness = 320.0;
+  static const ratio = 0.86;
 }
