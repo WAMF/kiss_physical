@@ -14,6 +14,13 @@ First release.
 - **Lettering:** `PhysicalText` makes headings and numerals of a material:
   every stroke has a lit shoulder and casts a shadow, and takes the
   textures, wear and dew a surface does.
+- **Motion:** pressing is moved by springs, and how a body moves and taps
+  the hand follows from what it is made of (`PhysicalFeel`): plastic
+  bounces, stone settles. `PhysicalHaptics` turns the taps off.
+  `PhysicalPressable` and `PhysicalIconButton` can repeat while held
+  (`HoldRepeater`), and a pressable can answer a hold. `SpringController`
+  and `PhysicalMotion` (throws, stops and resistance past an edge) are
+  there for gestures to come.
 - **Components:** `PhysicalCard`, `PhysicalPanel`, `PhysicalPillButton`,
   `PhysicalIconButton`, `PhysicalSlider` and `PhysicalProgressBar`, with
   keyboard focus, screen-reader labels and disabled states. Each keeps its
