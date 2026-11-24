@@ -1,4 +1,3 @@
-import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:kiss_physical/src/motion/physical_feel.dart';
 
@@ -12,7 +11,8 @@ class SpringController extends AnimationController {
   SpringController({required super.vsync, super.value}) : super.unbounded();
 
   /// Sends the value towards [target] on [spring], keeping its speed, or
-  /// setting off at [velocity] when one is given.
+  /// setting off at [velocity] when one is given. Once within [tolerance]
+  /// of [target] and as nearly still, the value rests exactly on it.
   TickerFuture springTo(
     double target, {
     required SpringDescription spring,
@@ -20,7 +20,7 @@ class SpringController extends AnimationController {
     Tolerance tolerance = PhysicalFeel.settled,
   }) {
     return animateWith(
-      SpringSimulation(
+      ScrollSpringSimulation(
         spring,
         value,
         target,
